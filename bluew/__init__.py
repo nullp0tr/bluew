@@ -151,7 +151,7 @@ class Bluew(object):
         info = self.info(mac_)
         name = info['Name']
         good = [name + ':' + '/' + attribute, ]
-        bad = [None, ]
+        bad = ['Missing attribute argument', ]
         response = self._write_command_check_response(
             "select-attribute /org/bluez/hci0/dev_" + mac_.replace(':', '_') + "/" + attribute + "\n\r",
             good,
@@ -162,8 +162,8 @@ class Bluew(object):
     def write(self, data):
         """
         Bluetoothctl write command. Returns true if write was attempted.
-        :param data: 
-        :return: Tuple with (True || False, Reason)
+        :param data: Data string, exp: "03 01 01".
+        :return: Tuple with (True || False, Reason).
         """
         good = ['Attempting to write', ]
         bad = ['Missing data argument', 'No attribute selected', 'Invalid value at index 0']
@@ -173,6 +173,36 @@ class Bluew(object):
             bad
         )
         return respone
+
+    def swrite(self, data, base16=True):
+        """
+        Safe bluetoothctl write command. Safe since it returns true only if write was confirmed,
+        and not just if write was attempted.
+        :param data: Data string, exp: "0x03 0x01 0xff".
+        :param base16: Data values base. default is 16.
+        :return: Tuple with (True || False, Reason).
+        """
+        data_ = data.split(' ')
+        data__ = []
+        for val in data_:
+            if base16 and 'x' in val:
+                base = 16
+            elif not base16 and not 'x' in val:
+                base = 10
+            else:
+                raise ValueError("Base is not correct, if using base 10, set base16 to False")
+            data__.append(int(val, base))
+
+        write_response_status, write_response_reason = self.write(data)
+        if not write_response_status:
+            return write_response_status, write_response_reason
+        read_data = self.read()
+
+        for i, val in enumerate(data__):
+            if val != int(read_data[i], base=16):
+                    return False, "Write was not successful"
+
+        return True, "Write was successful"
 
     def read(self):
         """
@@ -184,10 +214,16 @@ class Bluew(object):
         response_ = self.strip_read(response)
         return response_
 
-    # Not working yet
     def notify(self, status):
-        self.btctl.stdin.write("notify " + status + "\n\r")
-        self.btctl.stdin.flush()
+        """
+        Bluetoothctl notify command.
+        :param status: status string, either "on" or "off".
+        :return: Tuple with (True || False, Reason).
+        """
+        good = ['Notify started', 'Notify stopped', ]
+        bad = ['Failed to start notify', ]
+        response = self._write_command_check_response("notify" + status, good, bad)
+        return response
 
     @staticmethod
     def strip_read(response):
