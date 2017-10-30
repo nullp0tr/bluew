@@ -1,3 +1,3 @@
 ## Bluew
 
-Bluew is just a python wrapper Bluetoothctl
+Bluew is just a python wrapper for Bluetoothctl
