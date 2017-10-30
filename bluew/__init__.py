@@ -1,18 +1,22 @@
-import select
 import subprocess
 import time
 from queue import Queue, Empty
 from threading import Thread
 
 
-def enq_o(out, queue):
+def enq_o(out, queue, handler=None):
     for line in iter(out.readline, b''):
+        if handler is not None:
+            handler(line=line)
         queue.put(line)
     out.close()
 
 
 class Bluew(object):
-    def __init__(self):
+    """
+    Bluew is a python wrapper for bluetoothctl.
+    """
+    def __init__(self, handler=None):
         try:
             self.btctl = subprocess.Popen(['bluetoothctl'],
                                           stdin=subprocess.PIPE,
@@ -25,11 +29,9 @@ class Bluew(object):
             raise FileNotFoundError('You need to have bluez (bluetoothctl) installed!')
 
         self.queue = Queue()
-        self.thread_ = Thread(target=enq_o, args=(self.btctl.stdout, self.queue))
+        self.thread_ = Thread(target=enq_o, args=(self.btctl.stdout, self.queue, handler))
         self.thread_.daemon = True
         self.thread_.start()
-        self.poller = select.poll()
-        self.poller.register(self.btctl.stdout, select.POLLIN)
 
     def _clear_queue(self):
         with self.queue.mutex:
@@ -74,12 +76,10 @@ class Bluew(object):
         self._write_command(command)
         response = False
         start_time = time.time()
-        end_time = time.time()
-        timed_out = end_time > start_time + timeout
+        timed_out = time.time() > start_time + timeout
         while response is False and not timed_out:
             response = self._check_response(good, bad)
-            end_time = time.time()
-            timed_out = end_time > start_time + timeout
+            timed_out = time.time() > start_time + timeout
         if timed_out:
             return False, 'Timed out'
         return response
@@ -155,7 +155,8 @@ class Bluew(object):
         response = self._write_command_check_response(
             "select-attribute /org/bluez/hci0/dev_" + mac_.replace(':', '_') + "/" + attribute + "\n\r",
             good,
-            bad
+            bad,
+            timeout=15
         )
         return response
 
@@ -187,7 +188,7 @@ class Bluew(object):
         for val in data_:
             if base16 and 'x' in val:
                 base = 16
-            elif not base16 and not 'x' in val:
+            elif not base16 and 'x' not in val:
                 base = 10
             else:
                 raise ValueError("Base is not correct, if using base 10, set base16 to False")
@@ -222,7 +223,7 @@ class Bluew(object):
         """
         good = ['Notify started', 'Notify stopped', ]
         bad = ['Failed to start notify', ]
-        response = self._write_command_check_response("notify" + status, good, bad)
+        response = self._write_command_check_response("notify " + status, good, bad, timeout=15)
         return response
 
     @staticmethod
@@ -260,3 +261,40 @@ class Bluew(object):
         if len(response_) < len(attributes) - 2:
             return {}
         return response_
+
+
+class BluewNotifier(Bluew):
+    """
+    BluewNotifier is using a Bluew instance to get constant updates from a bluetooth attribute, that supports notifications.
+    """
+    def __init__(self, mac, attribute, handler=None):
+        self.ready = False
+        self.handler = handler
+        Bluew.__init__(self, self.notif_handler)
+        resp_stat, reason = self.connect(mac)
+        if not resp_stat:
+            raise Exception(reason)
+        resp_stat, reason = self.select_attribute(mac, attribute)
+        if not resp_stat:
+            raise Exception(reason)
+        resp_stat, reason = self.notify('on')
+        if not resp_stat:
+            raise Exception(reason)
+        self.ready = True
+        self.data = []
+
+    def notif_handler(self, line):
+        if self.ready:
+            self._clear_queue()
+
+            attr_val = 'Attribute' in line and 'Value: ' in line
+            if line.startswith('\x1b[K[\x1b[0;93mCHG\x1b[0m] ') and attr_val:
+                strdata = line.split(' ')
+                val = strdata[4].split('x')[1].splitlines()[0]
+                b = bytearray.fromhex(val)
+                self.data.append(abs(int.from_bytes(b, byteorder='big', signed=True)))
+
+            if len(self.data) == 16:
+                if self.handler is not None:
+                    self.handler(self.data)
+                self.data.clear()
