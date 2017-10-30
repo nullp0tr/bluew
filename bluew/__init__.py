@@ -22,7 +22,7 @@ class Bluew(object):
                                           bufsize=1,
                                           universal_newlines=True)
         except FileNotFoundError:
-            raise FileNotFoundError('You need bluez and bluetoothctl installed!')
+            raise FileNotFoundError('You need to have bluez (bluetoothctl) installed!')
 
         self.queue = Queue()
         self.thread_ = Thread(target=enq_o, args=(self.btctl.stdout, self.queue))
@@ -35,9 +35,9 @@ class Bluew(object):
         with self.queue.mutex:
             self.queue.queue.clear()
 
-    def _check_answer(self, good, bad):
-        answer = self._get_answer()
-        for line in answer:
+    def _check_response(self, good, bad):
+        response = self._get_response()
+        for line in response:
             for gd in good:
                 if gd in line:
                     return True, gd
@@ -46,26 +46,23 @@ class Bluew(object):
                     return False, bd
         return False
 
-    def _get_answer(self):
-        answer = []
-        while True:
+    def _get_response(self, timeout=5, ignore_empty=False):
+        response = []
+        start_time = time.time()
+        timed_out = time.time() > start_time + timeout
+        while not timed_out:
             try:
                 line = self.queue.get_nowait()
             except Empty:
-                break
+                if ignore_empty:
+                    pass
+                else:
+                    break
             else:
-                answer.append(line)
-        return answer
-
-    def info(self, mac_):
-        answer_ = {}
-        while answer_ == {}:
-            self._write_command('info ' + mac_)
-            answer = self._get_answer()
-            answer_ = self.strip_info(answer)
-            if answer_ != {}:
-                break
-        return answer_
+                response.append(line)
+            finally:
+                timed_out = time.time() > start_time + timeout
+        return response
 
     def _write_command(self, command):
         self._clear_queue()
@@ -73,86 +70,135 @@ class Bluew(object):
         self.btctl.stdin.write(command + '\n\r')
         self.btctl.stdout.flush()
 
-    def _write_command_check_answer(self, command, good, bad, timeout=10):
+    def _write_command_check_response(self, command, good, bad, timeout=10):
         self._write_command(command)
-        answer = False
+        response = False
         start_time = time.time()
         end_time = time.time()
         timed_out = end_time > start_time + timeout
-        while answer is False and not timed_out:
-            answer = self._check_answer(good, bad)
+        while response is False and not timed_out:
+            response = self._check_response(good, bad)
             end_time = time.time()
             timed_out = end_time > start_time + timeout
         if timed_out:
             return False, 'Timed out'
-        return answer
+        return response
 
     def connect(self, mac_):
+        """
+        Bluetoothctl connect command.
+        :param mac_: Device mac address.
+        :return: Tuple with (True || False, Reason).
+        """
         info = self.info(mac_)
         if info['Connected'] == 'yes':
             return True, "Already connected"
         good = [mac_ + ' Connected: yes', 'Connection successful']
         bad = ['Failed to connect', 'Device ' + mac_ + ' not available']
-        answer = self._write_command_check_answer("connect " + mac_, good, bad)
-        return answer
+        response = self._write_command_check_response("connect " + mac_, good, bad)
+        return response
+
+    def info(self, mac_):
+        """
+        Bluetoothctl info command.
+        :param mac_: Device mac address.
+        :return: Tuple with (True || False, Reason).
+        """
+        response_ = {}
+        while response_ == {}:
+            self._write_command('info ' + mac_)
+            response = self._get_response()
+            response_ = self.strip_info(response)
+            if response_ != {}:
+                break
+        return response_
 
     def disconnect(self, mac_):
+        """
+        Bluetoothctl disconnect command.
+        :param mac_: Device mac address.
+        :return: Tuple with (True || False, Reason).
+        """
         info = self.info(mac_)
         if info['Connected'] == 'no':
             return True, "Already disconnected"
         good = [mac_ + ' Connected: no', 'Successful disconnected']
         bad = ['Device ' + mac_ + ' not available', ]
-        answer = self._write_command_check_answer("disconnect " + mac_, good, bad)
-        return answer
+        response = self._write_command_check_response("disconnect " + mac_, good, bad)
+        return response
 
     def pair(self, mac_):
+        """
+        Bluetoothctl pair command.
+        :param mac_: Device mac address.
+        :return: Tuple with (True || False, Reason).
+        """
         info = self.info(mac_)
         if info['Paired'] == 'yes':
             return True, "Already paired"
         good = [mac_ + ' Paired: yes', ]
         bad = ['Failed to pair', ]
-        answer = self._write_command_check_answer("pair " + mac_, good, bad)
-        return answer
+        response = self._write_command_check_response("pair " + mac_, good, bad)
+        return response
 
     def select_attribute(self, mac_, attribute):
+        """
+        Bluetoothctl select-attribute command.
+        :param mac_: Device mac address.
+        :param attribute: The attribute to be selected. 
+        :return: Tuple with (True || False, Reason).
+        """
         info = self.info(mac_)
         name = info['Name']
         good = [name + ':' + '/' + attribute, ]
         bad = [None, ]
-        answer = self._write_command_check_answer(
+        response = self._write_command_check_response(
             "select-attribute /org/bluez/hci0/dev_" + mac_.replace(':', '_') + "/" + attribute + "\n\r",
             good,
             bad
         )
-        return answer
+        return response
 
     def write(self, data):
+        """
+        Bluetoothctl write command. Returns true if write was attempted.
+        :param data: 
+        :return: Tuple with (True || False, Reason)
+        """
         good = ['Attempting to write', ]
         bad = ['Missing data argument', 'No attribute selected', 'Invalid value at index 0']
-        answer = self._write_command_check_answer(
+        respone = self._write_command_check_response(
             "write " + data,
             good,
             bad
         )
-        return answer
+        return respone
+
+    def read(self):
+        """
+        Bluetoothctl read command.
+        :return: list with the attribute values
+        """
+        self._write_command("read")
+        response = self._get_response(ignore_empty=True)
+        response_ = self.strip_read(response)
+        return response_
 
     # Not working yet
-    def read(self):
-        good = ['Attempting to read', ]
-        bad = ['No attribute selected', ]
-        answer = self._write_command_check_answer(
-            "read",
-            good,
-            bad
-        )
-        return answer
-
     def notify(self, status):
         self.btctl.stdin.write("notify " + status + "\n\r")
         self.btctl.stdin.flush()
 
     @staticmethod
-    def strip_info(answer):
+    def strip_read(response):
+        response_ = []
+        for line in response:
+            if 'Attribute' in line:
+                response_.append(line[-5:-1])
+        return response_
+
+    @staticmethod
+    def strip_info(response):
         attributes = (
             'Device',
             'Name',
@@ -165,8 +211,8 @@ class Bluew(object):
             'Connected',
             'LegacyPairing',
         )
-        answer_ = {}
-        for i, line_ in enumerate(answer):
+        response_ = {}
+        for i, line_ in enumerate(response):
             for attr in attributes:
                 if attr in line_:
                     line_ = line_.strip('\n')
@@ -174,7 +220,7 @@ class Bluew(object):
                     line_ = line_.split(' ', 1)[1]
                     if attr == 'Device' and len(line_) != 17:
                         break
-                    answer_[attr] = line_
-        if len(answer_) < len(attributes) - 2:
+                    response_[attr] = line_
+        if len(response_) < len(attributes) - 2:
             return {}
-        return answer_
+        return response_
