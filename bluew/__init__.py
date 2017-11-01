@@ -93,10 +93,8 @@ class Bluew(object):
         self._write_command(command)
         response = False
         start_time = time.time()
-        # timed_out = time.time() > start_time + timeout
         while response is False and not timed_out(start_time, timeout):
             response = self._check_response(good, bad)
-            # timed_out = time.time() > start_time + timeout
         if response is False:
             return False, 'Timed out'
         return response
