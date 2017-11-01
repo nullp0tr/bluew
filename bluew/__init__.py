@@ -263,9 +263,21 @@ class Bluew(object):
         return response_
 
 
+class BluewNotifierError(Exception):
+    """
+    BluewNotifierError a custom exception with the step of failure and the reason for the BluewNotifier
+    """
+    def __init__(self, step, reason):
+        self.step = step
+        self.reason = reason
+
+    def __str__(self):
+        return "Error while " + self.step + " because of: " + self.reason
+
+
 class BluewNotifier(Bluew):
     """
-    BluewNotifier is using a Bluew instance to get constant updates from a bluetooth attribute, that supports notifications.
+    A Bluew instance to get constant updates from a bluetooth attribute, that supports notifications.
     """
     def __init__(self, mac, attribute, handler=None):
         self.ready = False
@@ -273,13 +285,13 @@ class BluewNotifier(Bluew):
         Bluew.__init__(self, self.notif_handler)
         resp_stat, reason = self.connect(mac)
         if not resp_stat:
-            raise Exception(reason)
+            raise BluewNotifierError("connecting", reason)
         resp_stat, reason = self.select_attribute(mac, attribute)
         if not resp_stat:
-            raise Exception(reason)
+            raise BluewNotifierError("selecting attribute", reason)
         resp_stat, reason = self.notify('on')
         if not resp_stat:
-            raise Exception(reason)
+            raise BluewNotifierError("setting notify", reason)
         self.ready = True
         self.data = []
 
