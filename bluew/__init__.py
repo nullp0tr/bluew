@@ -1,3 +1,9 @@
+"""
+Bluew is a python wrapper for Bluetoothctl.
+Author: Ahmed Alsharif
+License: MIT
+"""
+
 import subprocess
 import time
 from queue import Queue, Empty
@@ -5,6 +11,14 @@ from threading import Thread
 
 
 def enq_o(out, queue, handler=None):
+    """
+    Add lines from Bluetoothctl to the queue,
+     and pass each line to a handler if provided.
+    :param out: stdout
+    :param queue: data queue
+    :param handler: function that get's called with each line.
+    :return: Nothing
+    """
     for line in iter(out.readline, b''):
         if handler is not None:
             handler(line=line)
@@ -16,20 +30,24 @@ class Bluew(object):
     """
     Bluew is a python wrapper for bluetoothctl.
     """
+
     def __init__(self, handler=None):
         try:
-            self.btctl = subprocess.Popen(['bluetoothctl'],
-                                          stdin=subprocess.PIPE,
-                                          stdout=subprocess.PIPE,
-                                          stderr=subprocess.PIPE,
-                                          close_fds=True,
-                                          bufsize=1,
-                                          universal_newlines=True)
+            self.btctl = subprocess.Popen(
+                ['bluetoothctl'],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                close_fds=True,
+                bufsize=1,
+                universal_newlines=True)
         except FileNotFoundError:
-            raise FileNotFoundError('You need to have bluez (bluetoothctl) installed!')
+            raise FileNotFoundError(
+                'You need to have bluez (bluetoothctl) installed!')
 
         self.queue = Queue()
-        self.thread_ = Thread(target=enq_o, args=(self.btctl.stdout, self.queue, handler))
+        self.thread_ = Thread(
+            target=enq_o, args=(self.btctl.stdout, self.queue, handler))
         self.thread_.daemon = True
         self.thread_.start()
 
@@ -37,8 +55,9 @@ class Bluew(object):
         with self.queue.mutex:
             self.queue.queue.clear()
 
-    def _check_response(self, good, bad):
-        response = self._get_response()
+    def _check_response(self, good, bad, response=None):
+        if not response:
+            response = self._get_response()
         for line in response:
             for gd in good:
                 if gd in line:
@@ -51,8 +70,7 @@ class Bluew(object):
     def _get_response(self, timeout=5, ignore_empty=False):
         response = []
         start_time = time.time()
-        timed_out = time.time() > start_time + timeout
-        while not timed_out:
+        while not timed_out(start_time, timeout):
             try:
                 line = self.queue.get_nowait()
             except Empty:
@@ -62,8 +80,7 @@ class Bluew(object):
                     break
             else:
                 response.append(line)
-            finally:
-                timed_out = time.time() > start_time + timeout
+        self._clear_queue()
         return response
 
     def _write_command(self, command):
@@ -76,11 +93,11 @@ class Bluew(object):
         self._write_command(command)
         response = False
         start_time = time.time()
-        timed_out = time.time() > start_time + timeout
-        while response is False and not timed_out:
+        # timed_out = time.time() > start_time + timeout
+        while response is False and not timed_out(start_time, timeout):
             response = self._check_response(good, bad)
-            timed_out = time.time() > start_time + timeout
-        if timed_out:
+            # timed_out = time.time() > start_time + timeout
+        if response is False:
             return False, 'Timed out'
         return response
 
@@ -91,26 +108,39 @@ class Bluew(object):
         :return: Tuple with (True || False, Reason).
         """
         info = self.info(mac_)
-        if info['Connected'] == 'yes':
+        connected = info.get('Connected', '')
+        if connected == 'yes':
             return True, "Already connected"
         good = [mac_ + ' Connected: yes', 'Connection successful']
         bad = ['Failed to connect', 'Device ' + mac_ + ' not available']
-        response = self._write_command_check_response("connect " + mac_, good, bad)
+        response = self._write_command_check_response("connect " + mac_, good,
+                                                      bad)
         return response
 
-    def info(self, mac_):
+    def info(self, mac_, timeout=5):
         """
         Bluetoothctl info command.
         :param mac_: Device mac address.
+        :param timeout:
         :return: Tuple with (True || False, Reason).
         """
         response_ = {}
-        while response_ == {}:
-            self._write_command('info ' + mac_)
+        good = ['Device ' + mac_ + '\n']
+        bad = ['Device ' + mac_ + ' not available']
+        self._write_command('info ' + mac_)
+
+        start_time = time.time()
+        while response_ == {} and not timed_out(start_time, timeout):
             response = self._get_response()
+
+            res = self._check_response(good, bad, response=response)
+            if isinstance(res, tuple) and res[0] is False:
+                break
+
             response_ = self.strip_info(response)
             if response_ != {}:
                 break
+
         return response_
 
     def disconnect(self, mac_):
@@ -120,11 +150,13 @@ class Bluew(object):
         :return: Tuple with (True || False, Reason).
         """
         info = self.info(mac_)
-        if info['Connected'] == 'no':
+        connected = info.get('Connected', '')
+        if connected == 'no':
             return True, "Already disconnected"
         good = [mac_ + ' Connected: no', 'Successful disconnected']
         bad = ['Device ' + mac_ + ' not available', ]
-        response = self._write_command_check_response("disconnect " + mac_, good, bad)
+        response = self._write_command_check_response("disconnect " + mac_,
+                                                      good, bad)
         return response
 
     def pair(self, mac_):
@@ -134,30 +166,35 @@ class Bluew(object):
         :return: Tuple with (True || False, Reason).
         """
         info = self.info(mac_)
-        if info['Paired'] == 'yes':
+        paired = info.get('Paired', '')
+        if paired == 'yes':
             return True, "Already paired"
         good = [mac_ + ' Paired: yes', ]
         bad = ['Failed to pair', ]
-        response = self._write_command_check_response("pair " + mac_, good, bad)
+        response = self._write_command_check_response("pair " + mac_, good,
+                                                      bad)
         return response
 
     def select_attribute(self, mac_, attribute):
         """
         Bluetoothctl select-attribute command.
         :param mac_: Device mac address.
-        :param attribute: The attribute to be selected. 
+        :param attribute: The attribute to be selected.
         :return: Tuple with (True || False, Reason).
         """
         info = self.info(mac_)
-        name = info['Name']
+        name = info.get('Name')
+        if not name:
+            return False, "Can't get device info"
+
         good = [name + ':' + '/' + attribute, ]
         bad = ['Missing attribute argument', ]
         response = self._write_command_check_response(
-            "select-attribute /org/bluez/hci0/dev_" + mac_.replace(':', '_') + "/" + attribute + "\n\r",
+            "select-attribute /org/bluez/hci0/dev_" + mac_.replace(':', '_') +
+            "/" + attribute + "\n\r",
             good,
             bad,
-            timeout=15
-        )
+            timeout=15)
         return response
 
     def write(self, data):
@@ -167,18 +204,18 @@ class Bluew(object):
         :return: Tuple with (True || False, Reason).
         """
         good = ['Attempting to write', ]
-        bad = ['Missing data argument', 'No attribute selected', 'Invalid value at index 0']
-        respone = self._write_command_check_response(
-            "write " + data,
-            good,
-            bad
-        )
+        bad = [
+            'Missing data argument', 'No attribute selected',
+            'Invalid value at index 0'
+        ]
+        respone = self._write_command_check_response("write " + data, good,
+                                                     bad)
         return respone
 
     def swrite(self, data, base16=True):
         """
-        Safe bluetoothctl write command. Safe since it returns true only if write was confirmed,
-        and not just if write was attempted.
+        Safe bluetoothctl write command, which returns true,
+        only if write was confirmed, and not just if write was attempted.
         :param data: Data string, exp: "0x03 0x01 0xff".
         :param base16: Data values base. default is 16.
         :return: Tuple with (True || False, Reason).
@@ -191,7 +228,9 @@ class Bluew(object):
             elif not base16 and 'x' not in val:
                 base = 10
             else:
-                raise ValueError("Base is not correct, if using base 10, set base16 to False")
+                raise ValueError(
+                    "Base is not correct, if using base 10 set base16 to False"
+                )
             data__.append(int(val, base))
 
         write_response_status, write_response_reason = self.write(data)
@@ -201,7 +240,7 @@ class Bluew(object):
 
         for i, val in enumerate(data__):
             if val != int(read_data[i], base=16):
-                    return False, "Write was not successful"
+                return False, "Write was not successful"
 
         return True, "Write was successful"
 
@@ -221,36 +260,51 @@ class Bluew(object):
         :param status: status string, either "on" or "off".
         :return: Tuple with (True || False, Reason).
         """
-        good = ['Notify started', 'Notify stopped', ]
+        good = [
+            'Notify started',
+            'Notify stopped',
+        ]
         bad = ['Failed to start notify', ]
-        response = self._write_command_check_response("notify " + status, good, bad, timeout=15)
+        response = self._write_command_check_response(
+            "notify " + status, good, bad, timeout=15)
         return response
 
     @staticmethod
     def strip_read(response):
+        """
+        This function strips an attribute value line,
+        off everything except for the value.
+        :param response: response is a line from Bluetoothctl
+        :return: the value of the attribute
+        """
         response_ = []
         for line in response:
             if 'Attribute' in line:
                 response_.append(line[-5:-1])
         return response_
 
+    attributes = (
+        'Device',
+        'Name',
+        'Alias',
+        'Class',
+        'Icon',
+        'Paired',
+        'Trusted',
+        'Blocked',
+        'Connected',
+        'LegacyPairing',)
+
     @staticmethod
     def strip_info(response):
-        attributes = (
-            'Device',
-            'Name',
-            'Alias',
-            'Class',
-            'Icon',
-            'Paired',
-            'Trusted',
-            'Blocked',
-            'Connected',
-            'LegacyPairing',
-        )
+        """
+        This function strips device info from bluetoothctl output.
+        :param response: a list of lines from bluetoothctl
+        :return: dictionary with device info
+        """
         response_ = {}
         for i, line_ in enumerate(response):
-            for attr in attributes:
+            for attr in Bluew.attributes:
                 if attr in line_:
                     line_ = line_.strip('\n')
                     line_ = line_.strip('\t')
@@ -258,15 +312,27 @@ class Bluew(object):
                     if attr == 'Device' and len(line_) != 17:
                         break
                     response_[attr] = line_
-        if len(response_) < len(attributes) - 2:
+        if len(response_) < len(Bluew.attributes) - 2:
             return {}
         return response_
 
 
+def timed_out(start_time, timeout_time):
+    """
+    This function returns True if it times out
+    :param start_time: self explanatory
+    :param timeout_time: self explanatory
+    :return: True if time is out, else False.
+    """
+    return time.time() > start_time + timeout_time
+
+
 class BluewNotifierError(Exception):
     """
-    BluewNotifierError a custom exception with the step of failure and the reason for the BluewNotifier
+    BluewNotifierError a custom exception with the step of error,
+    and what caused it.
     """
+
     def __init__(self, step, reason):
         self.step = step
         self.reason = reason
@@ -277,12 +343,15 @@ class BluewNotifierError(Exception):
 
 class BluewNotifier(Bluew):
     """
-    A Bluew instance to get constant updates from a bluetooth attribute, that supports notifications.
+    A Bluew instance to constantly get updates from a bluetooth attribute,
+    that supports notifications.
     """
-    def __init__(self, mac, attribute, handler=None):
+
+    def __init__(self, mac, attribute, handler=None, data_buff_size=1):
+        Bluew.__init__(self, self.notif_handler)
         self.ready = False
         self.handler = handler
-        Bluew.__init__(self, self.notif_handler)
+        self.data_buff_size = data_buff_size
         resp_stat, reason = self.connect(mac)
         if not resp_stat:
             raise BluewNotifierError("connecting", reason)
@@ -296,6 +365,13 @@ class BluewNotifier(Bluew):
         self.data = []
 
     def notif_handler(self, line):
+        """
+        Thif function get's called when Bluetoothctl outputs a line,
+        and checks if it's a notification to call the user defined handler,
+        on it's value.
+        :param line: Bluetoothctl output line
+        :return: Nothing
+        """
         if self.ready:
             self._clear_queue()
 
@@ -304,9 +380,11 @@ class BluewNotifier(Bluew):
                 strdata = line.split(' ')
                 val = strdata[4].split('x')[1].splitlines()[0]
                 b = bytearray.fromhex(val)
-                self.data.append(abs(int.from_bytes(b, byteorder='big', signed=True)))
+                self.data.append(
+                    abs(int.from_bytes(
+                        b, byteorder='big', signed=True)))
 
-            if len(self.data) == 16:
+            if len(self.data) == self.data_buff_size:
                 if self.handler is not None:
                     self.handler(self.data)
                 self.data.clear()
