@@ -26,12 +26,32 @@ def enq_o(out, queue, handler=None):
     out.close()
 
 
+def expect(good, bad, response):
+    """
+    A function to test a list of lines,
+    for specific answers, returns False
+    if noting expected is received.
+    :param good: What to expect with (True, reason).
+    :param bad: What to expect with (False, reason).
+    :param response: List of lines.
+    :return: (True || False, "expected") or False
+    """
+    for line in response:
+        for goodie in good:
+            if goodie in line:
+                return True, goodie
+        for baddie in bad:
+            if baddie is not None and baddie in line:
+                return False, baddie
+    return False
+
+
 class Bluew(object):
     """
     Bluew is a python wrapper for bluetoothctl.
     """
 
-    def __init__(self, handler=None):
+    def __init__(self, handler=None, clean_q=True):
         try:
             self.btctl = subprocess.Popen(
                 ['bluetoothctl'],
@@ -50,24 +70,14 @@ class Bluew(object):
             target=enq_o, args=(self.btctl.stdout, self.queue, handler))
         self.thread_.daemon = True
         self.thread_.start()
+        self.clean_q = clean_q
 
     def _clear_queue(self):
-        with self.queue.mutex:
-            self.queue.queue.clear()
+        if self.clean_q:
+            with self.queue.mutex:
+                self.queue.queue.clear()
 
-    def _check_response(self, good, bad, response=None):
-        if not response:
-            response = self._get_response()
-        for line in response:
-            for gd in good:
-                if gd in line:
-                    return True, gd
-            for bd in bad:
-                if bd is not None and bd in line:
-                    return False, bd
-        return False
-
-    def _get_response(self, timeout=5, ignore_empty=False):
+    def _get_response(self, timeout=10, ignore_empty=False):
         response = []
         start_time = time.time()
         while not timed_out(start_time, timeout):
@@ -80,7 +90,6 @@ class Bluew(object):
                     break
             else:
                 response.append(line)
-        self._clear_queue()
         return response
 
     def _write_command(self, command):
@@ -89,12 +98,13 @@ class Bluew(object):
         self.btctl.stdin.write(command + '\n\r')
         self.btctl.stdout.flush()
 
-    def _write_command_check_response(self, command, good, bad, timeout=10):
+    def _write_command_check_response(self, command, good, bad, timeout=20):
         self._write_command(command)
         response = False
         start_time = time.time()
         while response is False and not timed_out(start_time, timeout):
-            response = self._check_response(good, bad)
+            response = expect(good, bad,
+                              response=self._get_response())
         if response is False:
             return False, 'Timed out'
         return response
@@ -131,7 +141,7 @@ class Bluew(object):
         while response_ == {} and not timed_out(start_time, timeout):
             response = self._get_response()
 
-            res = self._check_response(good, bad, response=response)
+            res = expect(good, bad, response)
             if isinstance(res, tuple) and res[0] is False:
                 break
 
@@ -168,7 +178,7 @@ class Bluew(object):
         if paired == 'yes':
             return True, "Already paired"
         good = [mac_ + ' Paired: yes', ]
-        bad = ['Failed to pair', ]
+        bad = ['Failed to pair', 'Device ' + mac_ + ' not available']
         response = self._write_command_check_response("pair " + mac_, good,
                                                       bad)
         return response
@@ -186,7 +196,7 @@ class Bluew(object):
             return False, "Can't get device info"
 
         good = [name + ':' + '/' + attribute, ]
-        bad = ['Missing attribute argument', ]
+        bad = ['Missing attribute argument', 'No device connected']
         response = self._write_command_check_response(
             "select-attribute /org/bluez/hci0/dev_" + mac_.replace(':', '_') +
             "/" + attribute + "\n\r",
@@ -262,9 +272,9 @@ class Bluew(object):
             'Notify started',
             'Notify stopped',
         ]
-        bad = ['Failed to start notify', ]
+        bad = ['Failed to start notify', 'No attribute selected']
         response = self._write_command_check_response(
-            "notify " + status, good, bad, timeout=15)
+            "notify " + status, good, bad)
         return response
 
     @staticmethod
@@ -301,7 +311,7 @@ class Bluew(object):
         :return: dictionary with device info
         """
         response_ = {}
-        for i, line_ in enumerate(response):
+        for line_ in response:
             for attr in Bluew.attributes:
                 if attr in line_:
                     line_ = line_.strip('\n')
@@ -332,6 +342,7 @@ class BluewNotifierError(Exception):
     """
 
     def __init__(self, step, reason):
+        Exception.__init__(self)
         self.step = step
         self.reason = reason
 
@@ -364,7 +375,7 @@ class BluewNotifier(Bluew):
 
     def notif_handler(self, line):
         """
-        Thif function get's called when Bluetoothctl outputs a line,
+        This function is called when Bluetoothctl outputs a line,
         and checks if it's a notification to call the user defined handler,
         on it's value.
         :param line: Bluetoothctl output line
@@ -377,10 +388,10 @@ class BluewNotifier(Bluew):
             if line.startswith('\x1b[K[\x1b[0;93mCHG\x1b[0m] ') and attr_val:
                 strdata = line.split(' ')
                 val = strdata[4].split('x')[1].splitlines()[0]
-                b = bytearray.fromhex(val)
+                data = bytearray.fromhex(val)
                 self.data.append(
                     abs(int.from_bytes(
-                        b, byteorder='big', signed=True)))
+                        data, byteorder='big', signed=True)))
 
             if len(self.data) == self.data_buff_size:
                 if self.handler is not None:

@@ -6,27 +6,124 @@ License: MIT
 
 import unittest
 
-from bluew import *
+from bluew import expect, Bluew
 
 
-class TestCheckResponse(unittest.TestCase):
+class TestExpect(unittest.TestCase):
+    """
+    Test cases for the CheckResponse function
+    """
     good = ['Good is better than bad', ]
     bad = ['Bad is better than good', ]
 
-    def test_check_response_with_bad(self):
+    def test_expect_with_bad(self):
+        """
+        Test if function returns correct value when a bad value is found.
+        :return:
+        """
         data = ['Good is the new Bad is better than good', ]
-        result = Bluew._check_response(Bluew(), good=self.good, bad=self.bad,
-                                       response=data)
+        result = expect(good=self.good, bad=self.bad,
+                        response=data)
         self.assertEqual((False, self.bad[0]), result)
 
-    def test_check_response_with_good(self):
+    def test_expect_with_good(self):
+        """
+        Test if function returns correct value when a good value is found.
+        :return:
+        """
         data = ['Good is the new Good is better than bad', ]
-        result = Bluew._check_response(Bluew(), good=self.good, bad=self.bad,
-                                       response=data)
+        result = expect(good=self.good, bad=self.bad,
+                        response=data)
         self.assertEqual((True, self.good[0]), result)
 
-    def test_check_response_with_neither(self):
+    def test_expect_neither(self):
+        """
+        Test if func returns False when neither good nor bad values are found.
+        :return:
+        """
         data = ['Good is the new Good is better than Bad', ]
-        result = Bluew._check_response(Bluew(), good=self.good, bad=self.bad,
-                                       response=data)
+        result = expect(good=self.good, bad=self.bad,
+                        response=data)
         self.assertEqual(False, result)
+
+
+class TestBluew(unittest.TestCase):
+    """
+    Test the Bluew class
+    """
+    def test_connect(self):
+        """
+        Test that connect writes to the bluetoothctl
+        :return: Assertion
+        """
+        try:
+            blw = Bluew(clean_q=True)
+        except FileNotFoundError:
+            return
+        mac = 'xx:xx:xx:xx:xx:xx:xx'
+        res = blw.connect(mac)
+        self.assertEqual(res[1], 'Device ' + mac + ' not available')
+
+    def test_disconnect(self):
+        """
+        Test that disconnect writes to the bluetoothctl
+        :return: Assertion
+        """
+        try:
+            blw = Bluew(clean_q=True)
+        except FileNotFoundError:
+            return
+        mac = 'xx:xx:xx:xx:xx:xx:xx'
+        res = blw.disconnect(mac)
+        self.assertEqual(res[1], 'Device ' + mac + ' not available')
+
+    def test_pair(self):
+        """
+        Test that pair writes to the bluetoothctl
+        :return: Assertion
+        """
+        try:
+            blw = Bluew(clean_q=True)
+        except FileNotFoundError:
+            return
+        mac = 'xx:xx:xx:xx:xx:xx:xx'
+        res = blw.pair(mac)
+        self.assertEqual(res[1], 'Device ' + mac + ' not available')
+
+    def test_select_attribute(self):
+        """
+        Test that select_attribute writes to the bluetoothctl
+        :return: Assertion
+        """
+        try:
+            blw = Bluew(clean_q=True)
+        except FileNotFoundError:
+            return
+        mac = 'xx:xx:xx:xx:xx:xx:xx'
+        attr = 'testattr'
+        res = blw.select_attribute(mac, attr)
+        self.assertEqual(res[1], "Can't get device info")
+
+    def test_write(self):
+        """
+        Test that write writes to the bluetoothctl
+        :return: Assertion
+        """
+        try:
+            blw = Bluew(clean_q=True)
+        except FileNotFoundError:
+            return
+        res = blw.write('0x04')
+        self.assertEqual(res[1], "No attribute selected")
+
+    def test_notify(self):
+        """
+        Test that write writes to the bluetoothctl
+        :return: Assertion
+        """
+        try:
+            blw = Bluew(clean_q=True)
+        except FileNotFoundError:
+            return
+        res = blw.notify('on')
+        self.assertEqual(res[1], 'No attribute selected')
