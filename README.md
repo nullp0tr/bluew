@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/nullp0tr/bluew.svg?branch=master)](https://travis-ci.org/nullp0tr/Bluew)
+[![codecov](https://codecov.io/gh/nullp0tr/bluew/branch/master/graph/badge.svg)](https://codecov.io/gh/nullp0tr/bluew)
 # Bluew
 
 Bluew is a python wrapper for Bluetoothctl, the official client from the linux bluetooth stack Bluez.
