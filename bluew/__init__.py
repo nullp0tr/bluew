@@ -125,31 +125,41 @@ class Bluew(object):
                                                       bad)
         return response
 
-    def info(self, mac_, timeout=5):
+    def info(self, mac_, timeout=10):
         """
         Bluetoothctl info command.
         :param mac_: Device mac address.
         :param timeout:
         :return: Tuple with (True || False, Reason).
         """
-        response_ = {}
+        info_data = {}
         good = ['Device ' + mac_ + '\n']
         bad = ['Device ' + mac_ + ' not available']
         self._write_command('info ' + mac_)
-
         start_time = time.time()
-        while response_ == {} and not timed_out(start_time, timeout):
-            response = self._get_response()
+        not_big_enough = True
+        while not_big_enough and not timed_out(start_time, timeout):
+            resp_data = self._get_response()
 
-            res = expect(good, bad, response)
+            res = expect(good, bad, resp_data)
             if isinstance(res, tuple) and res[0] is False:
                 break
 
-            response_ = self.strip_info(response)
-            if response_ != {}:
-                break
+            def merge_dicts(first, second):
+                """
+                merges two dicts together and returns a third one.
+                :param first: a dict
+                :param second: another dict
+                :return: a dict with both first and second dict
+                """
+                third = first.copy()
+                third.update(second)
+                return third
 
-        return response_
+            info_data = merge_dicts(
+                self.strip_info(resp_data, response_=info_data), info_data)
+            not_big_enough = len(info_data) < (len(Bluew.attributes) - 2)
+        return info_data
 
     def disconnect(self, mac_):
         """
@@ -304,14 +314,16 @@ class Bluew(object):
         'LegacyPairing',)
 
     @staticmethod
-    def strip_info(response):
+    def strip_info(data, response_=None):
         """
         This function strips device info from bluetoothctl output.
-        :param response: a list of lines from bluetoothctl
+        :param data: a list of lines from bluetoothctl
+        :param response_: optional recursive parameter
         :return: dictionary with device info
         """
-        response_ = {}
-        for line_ in response:
+        if data is None:
+            response_ = {}
+        for line_ in data:
             for attr in Bluew.attributes:
                 if attr in line_:
                     line_ = line_.strip('\n')
@@ -320,8 +332,6 @@ class Bluew(object):
                     if attr == 'Device' and len(line_) != 17:
                         break
                     response_[attr] = line_
-        if len(response_) < len(Bluew.attributes) - 2:
-            return {}
         return response_
 
 

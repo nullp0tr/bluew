@@ -47,9 +47,13 @@ class TestExpect(unittest.TestCase):
         self.assertEqual(False, result)
 
 
-class TestBluew(unittest.TestCase):
+class TestBluewNoDevice(unittest.TestCase):
     """
-    Test the Bluew class
+    Test the Bluew class. All tests here use a device
+    that doesn't exist and thus don't actually test
+    if these calls work when a real device is available.
+    Only returns when the device is not available are
+    tested here.
     """
     def test_connect(self):
         """
@@ -127,3 +131,16 @@ class TestBluew(unittest.TestCase):
             return
         res = blw.notify('on')
         self.assertEqual(res[1], 'No attribute selected')
+
+    def test_info(self):
+        """
+        Test that write writes to the bluetoothctl
+        :return: Assertion
+        """
+        try:
+            blw = Bluew(clean_q=True)
+        except FileNotFoundError:
+            return
+        mac = 'xx:xx:zz:xx:zz:xx'
+        res = blw.info(mac)
+        self.assertEqual(res, {})
