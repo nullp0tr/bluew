@@ -1,6 +1,12 @@
+"""
+setup.py script for bluew.
+"""
+
+
 from setuptools import setup
 
-setup (
+
+setup(
     name='bluew',
     version='0.0.1',
     description='Python Wrapper for Bluetoothctl',

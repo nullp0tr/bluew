@@ -109,22 +109,6 @@ class Bluew(object):
             return False, 'Timed out'
         return response
 
-    def connect(self, mac_):
-        """
-        Bluetoothctl connect command.
-        :param mac_: Device mac address.
-        :return: Tuple with (True || False, Reason).
-        """
-        info = self.info(mac_)
-        connected = info.get('Connected', '')
-        if connected == 'yes':
-            return True, "Already connected"
-        good = [mac_ + ' Connected: yes', 'Connection successful']
-        bad = ['Failed to connect', 'Device ' + mac_ + ' not available']
-        response = self._write_command_check_response("connect " + mac_, good,
-                                                      bad)
-        return response
-
     def info(self, mac_, timeout=10):
         """
         Bluetoothctl info command.
@@ -160,6 +144,22 @@ class Bluew(object):
                 self.strip_info(resp_data, response_=info_data), info_data)
             not_big_enough = len(info_data) < (len(Bluew.attributes) - 2)
         return info_data
+
+    def connect(self, mac_):
+        """
+        Bluetoothctl connect command.
+        :param mac_: Device mac address.
+        :return: Tuple with (True || False, Reason).
+        """
+        info = self.info(mac_)
+        connected = info.get('Connected', '')
+        if connected == 'yes':
+            return True, "Already connected"
+        good = [mac_ + ' Connected: yes', 'Connection successful']
+        bad = ['Failed to connect', 'Device ' + mac_ + ' not available']
+        response = self._write_command_check_response("connect " + mac_, good,
+                                                      bad)
+        return response
 
     def disconnect(self, mac_):
         """
@@ -272,19 +272,47 @@ class Bluew(object):
         response_ = self.strip_read(response)
         return response_
 
-    def notify(self, status):
+    def notify(self, on_off_arg):
         """
         Bluetoothctl notify command.
-        :param status: status string, either "on" or "off".
+        :param on_off_arg: string, either "on" or "off".
         :return: Tuple with (True || False, Reason).
         """
         good = [
             'Notify started',
             'Notify stopped',
         ]
-        bad = ['Failed to start notify', 'No attribute selected']
+        bad = [
+            'Failed to start notify',
+            'Failed to stop notify',
+            'No attribute selected'
+        ]
         response = self._write_command_check_response(
-            "notify " + status, good, bad)
+            "notify " + on_off_arg,
+            good,
+            bad)
+        return response
+
+    def scan(self, on_off_arg):
+        """
+        Bluetoothctl scan command
+        :param on_off_arg: string, either "on" or "off".
+        :return: Tuple with (True || False, Reason).
+        """
+        good = [
+            'Discovery started',
+            'Discovery stopped'
+        ]
+        bad = [
+            'Failed to start discovery',
+            'Failed to stop discovery',
+            'Invalid argument'
+        ]
+        response = self._write_command_check_response(
+            "scan " + on_off_arg,
+            good,
+            bad
+        )
         return response
 
     @staticmethod

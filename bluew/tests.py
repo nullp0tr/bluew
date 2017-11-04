@@ -132,6 +132,24 @@ class TestBluewNoDevice(unittest.TestCase):
         res = blw.notify('on')
         self.assertEqual(res[1], 'No attribute selected')
 
+    def test_scan(self):
+        """
+        Test that write writes to the bluetoothctl
+        :return: Assertion
+        """
+        try:
+            blw = Bluew(clean_q=True)
+        except FileNotFoundError:
+            return
+        res = blw.scan('on')
+        self.assertEqual(res[1], 'Discovery started')
+        res = blw.scan('on')
+        self.assertEqual(res[1], 'Failed to start discovery')
+        res = blw.scan('off')
+        self.assertEqual(res[1], 'Discovery stopped')
+        res = blw.scan('off')
+        self.assertEqual(res[1], 'Failed to stop discovery')
+
     def test_info(self):
         """
         Test that write writes to the bluetoothctl
