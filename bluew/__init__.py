@@ -10,16 +10,17 @@ from queue import Queue, Empty
 from threading import Thread
 
 
-def enq_o(out, queue, handler=None):
+def enq_o(out, queue, eof=b'', handler=None):
     """
     Add lines from Bluetoothctl to the queue,
      and pass each line to a handler if provided.
     :param out: stdout
     :param queue: data queue
     :param handler: function that get's called with each line.
+    :param eof: end of file
     :return: Nothing
     """
-    for line in iter(out.readline, b''):
+    for line in iter(out.readline, eof):
         if handler is not None:
             handler(line=line)
         queue.put(line)
@@ -51,10 +52,10 @@ class Bluew(object):
     Bluew is a python wrapper for bluetoothctl.
     """
 
-    def __init__(self, handler=None, clean_q=True):
+    def __init__(self, handler=None, clean_q=True, blctl_bin='bluetoothctl'):
         try:
             self.btctl = subprocess.Popen(
-                ['bluetoothctl'],
+                [blctl_bin],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -63,7 +64,7 @@ class Bluew(object):
                 universal_newlines=True)
         except FileNotFoundError:
             raise FileNotFoundError(
-                'You need to have bluez (bluetoothctl) installed!')
+                'You need to have bluez ' + blctl_bin + ' installed!')
 
         self.queue = Queue()
         self.thread_ = Thread(
@@ -77,15 +78,19 @@ class Bluew(object):
             with self.queue.mutex:
                 self.queue.queue.clear()
 
-    def _get_response(self, timeout=10, ignore_empty=False):
+    def _get_response(self, timeout=0.2, ignore_empty=False):
         response = []
         start_time = time.time()
+        received_input = False
         while not timed_out(start_time, timeout):
             try:
                 line = self.queue.get_nowait()
+                received_input = True
             except Empty:
                 if ignore_empty:
-                    pass
+                    if received_input:
+                        start_time = time.time()
+                        received_input = False
                 else:
                     break
             else:
@@ -141,8 +146,10 @@ class Bluew(object):
                 return third
 
             info_data = merge_dicts(
-                self.strip_info(resp_data, response_=info_data), info_data)
+                strip_info(resp_data, response_=info_data), info_data)
             not_big_enough = len(info_data) < (len(Bluew.attributes) - 2)
+        if not_big_enough:
+            info_data = {}
         return info_data
 
     def connect(self, mac_):
@@ -262,14 +269,14 @@ class Bluew(object):
 
         return True, "Write was successful"
 
-    def read(self):
+    def read(self, timeout=0.2):
         """
         Bluetoothctl read command.
         :return: list with the attribute values
         """
         self._write_command("read")
-        response = self._get_response(ignore_empty=True)
-        response_ = self.strip_read(response)
+        response = self._get_response(ignore_empty=True, timeout=timeout)
+        response_ = strip_read(response)
         return response_
 
     def notify(self, on_off_arg):
@@ -315,20 +322,6 @@ class Bluew(object):
         )
         return response
 
-    @staticmethod
-    def strip_read(response):
-        """
-        This function strips an attribute value line,
-        off everything except for the value.
-        :param response: response is a line from Bluetoothctl
-        :return: the value of the attribute
-        """
-        response_ = []
-        for line in response:
-            if 'Attribute' in line:
-                response_.append(line[-5:-1])
-        return response_
-
     attributes = (
         'Device',
         'Name',
@@ -341,26 +334,42 @@ class Bluew(object):
         'Connected',
         'LegacyPairing',)
 
-    @staticmethod
-    def strip_info(data, response_=None):
-        """
-        This function strips device info from bluetoothctl output.
-        :param data: a list of lines from bluetoothctl
-        :param response_: optional recursive parameter
-        :return: dictionary with device info
-        """
-        if data is None:
-            response_ = {}
-        for line_ in data:
-            for attr in Bluew.attributes:
-                if attr in line_:
-                    line_ = line_.strip('\n')
-                    line_ = line_.strip('\t')
-                    line_ = line_.split(' ', 1)[1]
-                    if attr == 'Device' and len(line_) != 17:
-                        break
-                    response_[attr] = line_
-        return response_
+
+def strip_info(data, response_=None):
+    """
+    This function strips device info from bluetoothctl output.
+    :param data: a list of lines from bluetoothctl
+    :param response_: optional recursive parameter
+    :return: dictionary with device info
+    """
+
+    if data is None or response_ is None:
+        response_ = {}
+    for line_ in data:
+        for attr in Bluew.attributes:
+            if attr in line_:
+                line_ = line_.strip('\n')
+                line_ = line_.strip('\t')
+                line_ = line_.split(' ', 1)[1]
+                if attr == 'Device' and len(line_) != 17:
+                    break
+                response_[attr] = line_
+    return response_
+
+
+def strip_read(output_data):
+    """
+    This function strips an attribute value line,
+    off everything except for the value.
+    :param output_data: output lines from Bluetoothctl
+    :return: the value of the attribute
+    """
+
+    result = []
+    for line in output_data:
+        if 'Attribute' in line and 'Value: ' in line:
+            result.append(line[-5:-1])
+    return result
 
 
 def timed_out(start_time, timeout_time):
@@ -394,20 +403,29 @@ class BluewNotifier(Bluew):
     that supports notifications.
     """
 
-    def __init__(self, mac, attribute, handler=None, data_buff_size=1):
+    def __init__(self, mac, attribute,
+                 handler=None,
+                 data_buff_size=1,
+                 **kwargs):
         Bluew.__init__(self, self.notif_handler)
         self.ready = False
         self.handler = handler
         self.data_buff_size = data_buff_size
-        resp_stat, reason = self.connect(mac)
-        if not resp_stat:
-            raise BluewNotifierError("connecting", reason)
-        resp_stat, reason = self.select_attribute(mac, attribute)
-        if not resp_stat:
-            raise BluewNotifierError("selecting attribute", reason)
-        resp_stat, reason = self.notify('on')
-        if not resp_stat:
-            raise BluewNotifierError("setting notify", reason)
+        # no_connect is used to skip step when testing.
+        if kwargs.get('no_connect') is None:
+            resp_stat, reason = self.connect(mac)
+            if not resp_stat:
+                raise BluewNotifierError("connecting", reason)
+        # no_select is used to skip step when testing
+        if kwargs.get('no_select') is None:
+            resp_stat, reason = self.select_attribute(mac, attribute)
+            if not resp_stat:
+                raise BluewNotifierError("selecting attribute", reason)
+        # no_notify is used to skip step when testing
+        if kwargs.get('no_notify') is None:
+            resp_stat, reason = self.notify('on')
+            if not resp_stat:
+                raise BluewNotifierError("setting notify", reason)
         self.ready = True
         self.data = []
 
