@@ -31,6 +31,3 @@ As easy that!
 
 ### Status
 Some functions of Bluetoothctl aren't ready yet, but they're all gonna be added soon.
-
-### Test coverage
-More tests are getting added, but currently most tests can't run on travis, because bluew uses Bluez 5 and so far I hadn't any success installing that on the travis VMs.
