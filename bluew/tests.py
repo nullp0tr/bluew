@@ -9,9 +9,8 @@ import unittest
 from queue import Queue
 from nose.plugins.attrib import attr
 from testconfig import config
-
 from bluew import expect, Bluew, enq_o, BluewNotifier, \
-    BluewNotifierError, strip_read, strip_info
+    BluewNotifierError, strip_read, strip_info, strip_devices
 
 
 class TestExpect(unittest.TestCase):
@@ -94,6 +93,49 @@ class TestStripRead(unittest.TestCase):
         output_data = ['Attribute band Value: 0x04\n' for _ in range(10)]
         result = strip_read(output_data)
         self.assertEqual(result, values)
+
+
+class TestStripDevices(unittest.TestCase):
+    """
+    Test cases for strip_devices()
+    """
+    blctl_bad_output_data = [
+        'ljsdlj lskjdslk sljdgslj',
+        'ljsdlkjds ljsdglkj sdlkjgds'
+    ]
+    blctl_good_output_data = [
+        'Device XX:ZZ:YY:AA:BB:CC Something',
+        'Device ZZ:YY:AA:BB:CC:DD Nothing'
+    ]
+    good_data_result = [
+        'XX:ZZ:YY:AA:BB:CC',
+        'ZZ:YY:AA:BB:CC:DD'
+    ]
+    bad_data_result = []
+
+    def test_with_good_data(self):
+        """
+        Test strip_devices() with valid output data.
+        :return: Assertion.
+        """
+        result = strip_devices(self.blctl_good_output_data)
+        self.assertEqual(result, self.good_data_result)
+
+    def test_with_bad_data(self):
+        """
+        Test strip_devices() with invalid output data.
+        :return: Assertion.
+        """
+        result = strip_devices(self.blctl_bad_output_data)
+        self.assertEqual(result, self.bad_data_result)
+
+    def test_with_empty_list(self):
+        """
+        Test strip_devices() with empty list.
+        :return: Assertion.
+        """
+        result = strip_devices([])
+        self.assertEqual(result, self.bad_data_result)
 
 
 class TestStripInfo(unittest.TestCase):
@@ -209,6 +251,8 @@ class TestBluewWithDevice(unittest.TestCase):
         mac = self.mac
         res = blw.pair(mac)
         self.assertEqual(res[0], True)
+        res = blw.pair(mac)
+        self.assertEqual(res[1], "Already paired")
 
     def test_select_attribute(self):
         """
@@ -232,8 +276,10 @@ class TestBluewWithDevice(unittest.TestCase):
         :return: Assertion
         """
         blw = Bluew()
-        blw.connect(self.mac)
-        blw.select_attribute(self.mac, self.correct_attribute)
+        res = blw.connect(self.mac)
+        self.assertEqual(res[0], True)
+        res = blw.select_attribute(self.mac, self.correct_attribute)
+        self.assertEqual(res[0], True)
         res = blw.write('0x00')
         self.assertEqual(res[0], True)
         blw.disconnect(self.mac)
@@ -270,6 +316,20 @@ class TestBluewWithDevice(unittest.TestCase):
         res = blw.select_attribute(self.mac, self.correct_attribute)
         self.assertEqual(res[0], True)
         res = blw.swrite('0x01')
+        self.assertEqual(res[0], True)
+
+    @attr('remove')
+    def test_remove(self):
+        """
+        Test that remove() removes device.
+        :return: Assertion.
+        """
+        blw = Bluew()
+        res = blw.connect(self.mac)
+        self.assertEqual(res[0], True)
+        res = blw.disconnect(self.mac)
+        self.assertEqual(res[0], True)
+        res = blw.remove(self.mac)
         self.assertEqual(res[0], True)
 
 
@@ -314,6 +374,19 @@ class TestBluewNoDevice(unittest.TestCase):
             return
         mac = 'xx:xx:xx:xx:xx:xx:xx'
         res = blw.disconnect(mac)
+        self.assertEqual(res[1], 'Device ' + mac + ' not available')
+
+    def test_remove(self):
+        """
+        Test that remove() writes to bluetoothctl.
+        :return: Assertion
+        """
+        try:
+            blw = Bluew()
+        except FileNotFoundError:
+            return
+        mac = 'xx:xx:xx:xx:xx'
+        res = blw.remove(mac)
         self.assertEqual(res[1], 'Device ' + mac + ' not available')
 
     def test_pair(self):

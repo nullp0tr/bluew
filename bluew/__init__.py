@@ -73,26 +73,6 @@ class Bluew(object):
         self._thread.start()
         self._clean_q = clean_q
 
-    def _parse_scanned_devices(self, found_devices):
-        if found_devices is None:
-            return
-
-        def _handler(line):
-            if 'NEW' in line:
-                mac_addr = line.split(' ')[2]
-                found_devices.append(mac_addr)
-
-        self._thread = Thread(
-            target=enq_o, args=(self.btctl.stdout, self._queue, _handler))
-        self._thread.daemon = True
-        self._thread.start()
-
-    def _reload_thread(self):
-        self._thread = Thread(
-            target=enq_o, args=(self.btctl.stdout, self._queue, None))
-        self._thread.daemon = True
-        self._thread.start()
-
     def _clear_queue(self):
         if self._clean_q:
             with self._queue.mutex:
@@ -184,7 +164,22 @@ class Bluew(object):
             return True, "Already connected"
         good = [mac_ + ' Connected: yes', 'Connection successful']
         bad = ['Failed to connect', 'Device ' + mac_ + ' not available']
-        response = self._write_command_check_response("connect " + mac_, good,
+        response = self._write_command_check_response("connect " + mac_,
+                                                      good,
+                                                      bad)
+        return response
+
+    def remove(self, mac_):
+        """
+        Bluetoothctl remove command.
+        :param mac_: Device mac address.
+        :return: Tuple with (True || False, Reason).
+        """
+        good = ['Device has been removed', ]
+        bad = ['Device ' + mac_ + ' not available',
+               "Device " + mac_ + " not available", ]
+        response = self._write_command_check_response("remove " + mac_,
+                                                      good,
                                                       bad)
         return response
 
@@ -299,6 +294,16 @@ class Bluew(object):
         response_ = strip_read(response)
         return response_
 
+    def devices(self, timeout=0.8):
+        """
+        Bluetoothctl devices command.
+        :return: list with devices.
+        """
+        self._write_command("devices")
+        response = self._get_response(ignore_empty=True, timeout=timeout)
+        response_ = strip_devices(response)
+        return response_
+
     def notify(self, on_off_arg):
         """
         Bluetoothctl notify command.
@@ -320,10 +325,9 @@ class Bluew(object):
             bad)
         return response
 
-    def scan(self, on_off_arg, found_devices=None):
+    def scan(self, on_off_arg):
         """
-        Bluetoothctl scan command
-        :param found_devices: list of found devices so far.
+        Bluetoothctl scan command.
         :param on_off_arg: string, either "on" or "off".
         :return: Tuple with (True || False, Reason).
         """
@@ -341,11 +345,6 @@ class Bluew(object):
             good,
             bad
         )
-
-        if response[1] == 'Discovery started':
-            self._parse_scanned_devices(found_devices)
-        else:
-            self._reload_thread()
         return response
 
     attributes = (
@@ -381,6 +380,22 @@ def strip_info(data, response_=None):
                     break
                 response_[attr] = line_
     return response_
+
+
+def strip_devices(output_data):
+    """
+    this function strips devices data.
+    :param output_data: output lines from bluetoothctl
+    :return: list of devices.
+    """
+    result = []
+    for line in output_data:
+        splitted_line = line.split(' ')
+        line_starts_correctly = splitted_line[0] == 'Device'
+        line_has_enough_attrs = len(splitted_line) >= 3
+        if line_starts_correctly and line_has_enough_attrs:
+            result.append(splitted_line[1])
+    return result
 
 
 def strip_read(output_data):

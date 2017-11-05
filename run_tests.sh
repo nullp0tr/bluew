@@ -16,11 +16,20 @@ then
 else
         printf $fail
 fi
-printf "nosetests: "
-nosetests --with-coverage &> /dev/null
+printf "nosetests without device: "
+nosetests -a '!require_dev' &> /dev/null
 if (($? == 0))
 then
         printf $succ
 else
 	printf $fail
 fi
+printf "nosetests with dev: "
+nosetests --tc-file .testconfig.yaml --tc-format yaml &> /dev/null
+if (($? == 0))
+then
+        printf $succ
+else
+        printf $fail
+fi
+
