@@ -13,8 +13,9 @@ before_script:
   - pip3 install flake8
   - pip3 install pylint
   - pip3 install coverage
+  - pip3 install nose-testconfig
   - flake8 bluew
   - pylint bluew
 # command to run tests
 script:
-  - nosetests
+  - nosetests -a '!require_dev'

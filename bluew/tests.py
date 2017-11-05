@@ -7,6 +7,8 @@ License: MIT
 import io
 import unittest
 from queue import Queue
+from nose.plugins.attrib import attr
+from testconfig import config
 
 from bluew import expect, Bluew, enq_o, BluewNotifier, \
     BluewNotifierError, strip_read, strip_info
@@ -157,6 +159,120 @@ class TestStripInfo(unittest.TestCase):
         return
 
 
+@attr('require_dev')
+class TestBluewWithDevice(unittest.TestCase):
+    """
+    Test the Bluew class with the mac address,
+    set in .testconfig.yaml. Don't run these
+    tests if you don't have a bl device available.
+    """
+
+    try:
+        mac = config['devices']['testdev1']['mac_address']
+        false_attribute = config['devices']['testdev1']['false_attribute']
+        correct_attribute = config['devices']['testdev1']['correct_attribute']
+    except KeyError:
+        pass
+
+    def test_connect(self):
+        """
+        Test that connect() connects to dev.
+        :return: Assertion.
+        """
+        blw = Bluew()
+        mac = self.mac
+        res = blw.connect(mac)
+        self.assertEqual(res[0], True)
+        res = blw.connect(mac)
+        self.assertEqual(res[1], 'Already connected')
+
+    def test_disconnect(self):
+        """
+        Test that disconnect() disconnects from dev.
+        :return: Assertion.
+        """
+        blw = Bluew()
+        mac = self.mac
+        res = blw.disconnect(mac)
+        self.assertEqual(res[0], True)
+        res = blw.disconnect(mac)
+        self.assertEqual(res[0], True)
+        res = blw.disconnect(mac)
+        self.assertEqual(res[1], 'Already disconnected')
+
+    def test_pair(self):
+        """
+        Test that pair() pairs with dev.
+        :return: Assertion
+        """
+        blw = Bluew()
+        mac = self.mac
+        res = blw.pair(mac)
+        self.assertEqual(res[0], True)
+
+    def test_select_attribute(self):
+        """
+        Test that select-attribute() selects attribute.
+        :return: Assertion
+        """
+        blw = Bluew()
+        mac = self.mac
+        blw.connect(mac)
+        bl_attr = self.false_attribute
+        res = blw.select_attribute(mac, bl_attr)
+        self.assertEqual(res[0], False)
+        bl_attr = self.correct_attribute
+        res = blw.select_attribute(mac, bl_attr)
+        self.assertEqual(res[0], True)
+        blw.disconnect(mac)
+
+    def test_write(self):
+        """
+        Test that write() attempts to write.
+        :return: Assertion
+        """
+        blw = Bluew()
+        blw.connect(self.mac)
+        blw.select_attribute(self.mac, self.correct_attribute)
+        res = blw.write('0x00')
+        self.assertEqual(res[0], True)
+        blw.disconnect(self.mac)
+
+    def test_read(self):
+        """
+        Test that read() reads from attribute
+        :return: Assertion
+        """
+        blw = Bluew()
+        res = blw.connect(self.mac)
+        self.assertEqual(res[0], True)
+        res = blw.select_attribute(self.mac, self.correct_attribute)
+        self.assertEqual(res[0], True)
+        res = blw.read()
+        read_data = ['0x00', '0x00', '0x00',
+                     '0x00', '0x00', '0x00',
+                     '0x00', '0x00', '0x00',
+                     '0x00', '0x00', '0x00',
+                     '0x00', '0x00', '0x00',
+                     '0x00', '0x00', '0x00',
+                     '0x00', '0x00']
+        self.assertEqual(res, read_data)
+        blw.disconnect(self.mac)
+
+    def test_swrite(self):
+        """
+        Test that swrite() writes to attribute.
+        :return: Assertion
+        """
+        blw = Bluew()
+        res = blw.connect(self.mac)
+        self.assertEqual(res[0], True)
+        res = blw.select_attribute(self.mac, self.correct_attribute)
+        self.assertEqual(res[0], True)
+        res = blw.swrite('0x01')
+        self.assertEqual(res[0], True)
+
+
 class TestBluewNoDevice(unittest.TestCase):
     """
     Test the Bluew class. All tests here use a device
@@ -223,8 +339,8 @@ class TestBluewNoDevice(unittest.TestCase):
         except FileNotFoundError:
             return
         mac = 'xx:xx:xx:xx:xx:xx:xx'
-        attr = 'testattr'
-        res = blw.select_attribute(mac, attr)
+        bl_attr = 'testattr'
+        res = blw.select_attribute(mac, bl_attr)
         self.assertEqual(res[1], "Can't get device info")
 
     def test_write(self):
@@ -262,6 +378,19 @@ class TestBluewNoDevice(unittest.TestCase):
             return
         res = blw.swrite('0x04')
         self.assertEqual(res[1], "No attribute selected")
+        res = blw.swrite('10', base16=False)
+        self.assertEqual(res[1], "No attribute selected")
+
+    def test_swrite_base(self):
+        """
+        Test that swrite() checks base.
+        :return: Assertion
+        """
+        try:
+            blw = Bluew(clean_q=True)
+        except FileNotFoundError:
+            return
+        self.assertRaises(ValueError, blw.swrite, data='10')
 
     def test_notify(self):
         """

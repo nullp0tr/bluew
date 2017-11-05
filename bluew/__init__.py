@@ -98,7 +98,7 @@ class Bluew(object):
             with self._queue.mutex:
                 self._queue.queue.clear()
 
-    def _get_response(self, timeout=0.2, ignore_empty=False):
+    def _get_response(self, timeout=0.5, ignore_empty=False):
         response = []
         start_time = time.time()
         received_input = False
@@ -129,7 +129,7 @@ class Bluew(object):
         start_time = time.time()
         while response is False and not timed_out(start_time, timeout):
             response = expect(good, bad,
-                              response=self._get_response())
+                              response=self._get_response(ignore_empty=True))
         if response is False:
             return False, 'Timed out'
         return response
@@ -289,7 +289,7 @@ class Bluew(object):
 
         return True, "Write was successful"
 
-    def read(self, timeout=0.2):
+    def read(self, timeout=0.4):
         """
         Bluetoothctl read command.
         :return: list with the attribute values
