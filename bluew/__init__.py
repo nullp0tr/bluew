@@ -10,7 +10,7 @@ from queue import Queue, Empty
 from threading import Thread
 
 
-def enq_o(out, queue, eof=b'', handler=None):
+def enq_o(out, queue, handler=None, eof=b''):
     """
     Add lines from Bluetoothctl to the queue,
      and pass each line to a handler if provided.
@@ -66,17 +66,37 @@ class Bluew(object):
             raise FileNotFoundError(
                 'You need to have bluez ' + blctl_bin + ' installed!')
 
-        self.queue = Queue()
-        self.thread_ = Thread(
-            target=enq_o, args=(self.btctl.stdout, self.queue, handler))
-        self.thread_.daemon = True
-        self.thread_.start()
-        self.clean_q = clean_q
+        self._queue = Queue()
+        self._thread = Thread(
+            target=enq_o, args=(self.btctl.stdout, self._queue, handler))
+        self._thread.daemon = True
+        self._thread.start()
+        self._clean_q = clean_q
+
+    def _parse_scanned_devices(self, found_devices):
+        if found_devices is None:
+            return
+
+        def _handler(line):
+            if 'NEW' in line:
+                mac_addr = line.split(' ')[2]
+                found_devices.append(mac_addr)
+
+        self._thread = Thread(
+            target=enq_o, args=(self.btctl.stdout, self._queue, _handler))
+        self._thread.daemon = True
+        self._thread.start()
+
+    def _reload_thread(self):
+        self._thread = Thread(
+            target=enq_o, args=(self.btctl.stdout, self._queue, None))
+        self._thread.daemon = True
+        self._thread.start()
 
     def _clear_queue(self):
-        if self.clean_q:
-            with self.queue.mutex:
-                self.queue.queue.clear()
+        if self._clean_q:
+            with self._queue.mutex:
+                self._queue.queue.clear()
 
     def _get_response(self, timeout=0.2, ignore_empty=False):
         response = []
@@ -84,7 +104,7 @@ class Bluew(object):
         received_input = False
         while not timed_out(start_time, timeout):
             try:
-                line = self.queue.get_nowait()
+                line = self._queue.get_nowait()
                 received_input = True
             except Empty:
                 if ignore_empty:
@@ -300,9 +320,10 @@ class Bluew(object):
             bad)
         return response
 
-    def scan(self, on_off_arg):
+    def scan(self, on_off_arg, found_devices=None):
         """
         Bluetoothctl scan command
+        :param found_devices: list of found devices so far.
         :param on_off_arg: string, either "on" or "off".
         :return: Tuple with (True || False, Reason).
         """
@@ -320,6 +341,11 @@ class Bluew(object):
             good,
             bad
         )
+
+        if response[1] == 'Discovery started':
+            self._parse_scanned_devices(found_devices)
+        else:
+            self._reload_thread()
         return response
 
     attributes = (
