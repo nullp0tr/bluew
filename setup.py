@@ -8,7 +8,7 @@ from setuptools import setup
 
 setup(
     name='bluew',
-    version='0.0.1',
+    version='0.2.0',
     description='Python Wrapper for Bluetoothctl',
     url='https://github.com/nullp0tr/Bluew',
     author='Ahmed Alsharif (nullp0tr)',

@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/nullp0tr/bluew.svg?branch=master)](https://travis-ci.org/nullp0tr/Bluew)
 [![codecov](https://codecov.io/gh/nullp0tr/bluew/branch/master/graph/badge.svg)](https://codecov.io/gh/nullp0tr/bluew)
+[![version](https://img.shields.io/badge/version-0.2.0-green.svg)](https://img.shields.io/badge/version-0.2.0-green.svg)
+
 # Bluew
 Bluetooth made simple.
 
