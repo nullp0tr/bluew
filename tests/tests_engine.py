@@ -12,9 +12,10 @@ This module provides tests for the BluewEngine class.
 
 from unittest import TestCase
 from bluew.engine import EngineBluew, EngineBluewError
-from bluew.plugables import UsedEngine
+from nose.plugins.attrib import attr
 
 
+@attr('req_engine')
 class ValidationTest(TestCase):
     """Tests validation functions for bluew.BluewEngine."""
 
@@ -47,6 +48,7 @@ class ValidationTest(TestCase):
             self.assertEqual(str(exp), exp.reason)
 
 
+@attr('req_engine')
 class APICallsTest(TestCase):
     """Tests that the api calls raise an exception when not overridden."""
 

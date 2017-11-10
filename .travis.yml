@@ -18,4 +18,4 @@ before_script:
   - pylint bluew
 # command to run tests
 script:
-  - nosetests -a '!req_dev'
+  - nosetests -a '!req_engine'

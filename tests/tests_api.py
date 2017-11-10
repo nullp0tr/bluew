@@ -18,6 +18,7 @@ from testconfig import config
 from nose.plugins.attrib import attr
 
 
+@attr('req_engine')
 class APITeststWithoutDev(TestCase):
     """Tests for the Bluew API without a device available"""
 
@@ -69,6 +70,7 @@ class APITeststWithoutDev(TestCase):
             self.assertEqual(error, str(exp))
 
 
+@attr('req_engine')
 @attr('req_dev')
 class APITestsWithDev(TestCase):
     """Tests for the Bluew API with a device available"""
@@ -120,6 +122,7 @@ class APITestsWithDev(TestCase):
         self.assertEqual(resp, resps.WriteSucceededResponse())
 
 
+@attr('req_engine')
 class ResponseTestWithoutDev(TestCase):
     """Test (**)FailedResponses."""
 
@@ -180,6 +183,7 @@ class ResponseTestWithoutDev(TestCase):
         self.assertEqual(resp, resps.WriteFailedResponse())
 
 
+@attr('req_engine')
 @attr('req_dev')
 class ResponseTestWithDev(TestCase):
     """Test ConnectSucceededResponse and DisconnectSucceededResponse"""
