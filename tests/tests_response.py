@@ -21,7 +21,7 @@ class ResponseTest(unittest.TestCase):
         msg = 'works'
         has_succeeded = True
         blw_response = Response(has_succeeded, msg)
-        self.assertEqual(blw_response.has_succeeded, True)
+        self.assertEqual(blw_response.has_succeeded, has_succeeded)
         self.assertEqual(blw_response.message, msg)
 
     def test_validates_wrong_types(self):

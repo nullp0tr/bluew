@@ -14,8 +14,7 @@ from Bluez +5.
 import subprocess
 import time
 from queue import Queue, Empty
-from threading import Thread
-
+from threading import Thread  # from .engine import BlctlEngine
 import bluew.responses as responses
 from bluew.engine import EngineBluew
 
@@ -204,13 +203,36 @@ class BlctlEngine(EngineBluew):
         if paired == 'yes':
             return responses.PairedAlreadyResponse()
         good = [mac + ' Paired: yes', ]
-        bad = ['Failed to pair', 'Device ' + mac + ' not available']
+        bad = ['Failed to pair',
+               'Device ' + mac + ' not available',
+               'Missing device address argument']
         result = self._write_command_get_result("pair " + mac, good,
                                                 bad)
         if result[0] is True:
             return responses.PairSucceededResponse()
 
         return responses.PairFailedResponse()
+
+    def trust(self, mac):
+        """
+        :param mac: MAC address of device.
+        :return: bluew.responses.Response
+        """
+
+        info = self._info(mac)
+        trusted = info.get('Trusted', '')
+        if trusted == 'yes':
+            return responses.TrustedAlreadyResponse()
+        good = ['Changing ' + mac + ' trust succeeded']
+        bad = ['Failed to pair',
+               'Device ' + mac + ' not available',
+               'Missing device address argument']
+        result = self._write_command_get_result("trust " + mac, good,
+                                                bad)
+        if result[0] is True:
+            return responses.TrustSucceededResponse()
+
+        return responses.TrustFailedResponse()
 
     def _select_attribute(self, mac, attribute):
         """
@@ -283,7 +305,7 @@ class BlctlEngine(EngineBluew):
         read_data = self._read()
 
         read_data_integers = hexlist_to_intlist(read_data)
-        if validate_write_data(data__, read_data_integers):
+        if not validate_write_data(data__, read_data_integers):
             return responses.WriteFailedResponse()
 
         return responses.WriteSucceededResponse()

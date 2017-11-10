@@ -14,11 +14,13 @@ by the Requests HTTP library.
 from .api import pair, info, trust
 from .api import write_attribute, read_attribute
 from .api import Connection
-
+from .engine import EngineBluewError, EngineBluew
 
 __all__ = ['pair',
            'info',
            'trust',
            'write_attribute',
            'read_attribute',
-           'Connection']
+           'Connection',
+           'EngineBluew',
+           'EngineBluewError']

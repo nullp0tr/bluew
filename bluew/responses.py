@@ -33,16 +33,6 @@ class Response:
                 return True
         return False
 
-    @staticmethod
-    def donothing():
-        """Just shutting pylint up"""
-        pass
-
-    @staticmethod
-    def donothingg():
-        """Just shutting pylint up"""
-        pass
-
 
 def validate_response(blw_response):
     """

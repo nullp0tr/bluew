@@ -11,8 +11,11 @@ with one device.
 """
 
 
-from .plugables import UsedEngine
+import bluew.plugables
 from .responses import ConnectFailedResponse
+
+
+UsedEngine = bluew.plugables.UsedEngine
 
 
 class Connection:

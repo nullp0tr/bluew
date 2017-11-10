@@ -66,6 +66,8 @@ class EngineBluew(object):
         """Template trust function to be overridden."""
         # pylint: disable=W0612,W0613
 
+        self._raise_not_implemented()
+
     def write_attribute(self, mac, attribute, data):
         """Template write_attribute function to be overridden."""
         # pylint: disable=W0612,W0613

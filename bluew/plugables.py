@@ -10,7 +10,6 @@ This module is gonna later handle plugable engines.
 """
 
 
-from blctl_engine import BlctlEngine
-
+from bluew.blctl import BlctlEngine
 
 UsedEngine = BlctlEngine
