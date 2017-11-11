@@ -14,7 +14,7 @@ from Bluez +5.
 import subprocess
 import time
 from queue import Queue, Empty
-from threading import Thread  # from .engine import BlctlEngine
+from threading import Thread
 import bluew.responses as responses
 from bluew.engine import EngineBluew
 
@@ -158,20 +158,6 @@ class BlctlEngine(EngineBluew):
 
         return responses.ConnectFailedResponse()
 
-    def _remove(self, mac):
-        """
-        Bluetoothctl remove command.
-        :param mac: Device mac address.
-        :return: Tuple with (True || False, Reason).
-        """
-        good = ['Device has been removed', ]
-        bad = ['Device ' + mac + ' not available',
-               "Missing device address argument"]
-        result = self._write_command_get_result("remove " + mac,
-                                                good,
-                                                bad)
-        return result
-
     def disconnect(self, mac):
         """
         Bluetoothctl disconnect command.
@@ -276,24 +262,10 @@ class BlctlEngine(EngineBluew):
         :param mac: MAC address of bluetooth device.
         :param attribute: attribute to be overwritten.
         :param data: Data string, exp: "0x03 0x01 0xff".
-        :param base16: Data values base. default is 16.
         :return: Tuple with (True || False, Reason).
         """
 
-        base16 = True
-
-        data_ = data.split(' ')
-        data__ = []
-        for val in data_:
-            if base16 and 'x' in val:
-                base = 16
-            elif not base16 and 'x' not in val:
-                base = 10
-            else:
-                raise ValueError(
-                    "Base is not correct, if using base 10 set base16 to False"
-                )
-            data__.append(int(val, base))
+        data_ = convert_to_int_list(data)
 
         result = self._select_attribute(mac, attribute)
         if result[0] is False:
@@ -305,7 +277,7 @@ class BlctlEngine(EngineBluew):
         read_data = self._read()
 
         read_data_integers = hexlist_to_intlist(read_data)
-        if not validate_write_data(data__, read_data_integers):
+        if not validate_write_data(data_, read_data_integers):
             return responses.WriteFailedResponse()
 
         return responses.WriteSucceededResponse()
@@ -328,62 +300,6 @@ class BlctlEngine(EngineBluew):
         if not result:
             return responses.ReadFailedResponse()
         return responses.ReadSucceededResponse(result)
-
-    def _devices(self, timeout=0.8):
-        """Bluetoothctl devices command.
-
-        :return: list with devices.
-        """
-        self._write_command("devices")
-        result = self._get_blctl_output(ignore_empty=True, timeout=timeout)
-        response_ = strip_devices(result)
-        return response_
-
-    def _notify(self, on_off_arg):
-        """
-        Bluetoothctl notify command.
-        :param on_off_arg: string, either "on" or "off".
-        :return: Tuple with (True || False, Reason).
-        """
-        good = [
-            'Notify started',
-            'Notify stopped',
-        ]
-        bad = [
-            'Failed to start notify',
-            'Failed to stop notify',
-            'No attribute selected',
-            'Missing on/off argument'
-        ]
-        result = self._write_command_get_result(
-            "notify " + on_off_arg,
-            good,
-            bad)
-        return result
-
-    def _scan(self, on_off_arg):
-        """Bluetoothctl scan command.
-
-        :param on_off_arg: string, either "on" or "off".
-        :return: Tuple with (True || False, Reason).
-        """
-        good = [
-            'Discovery started',
-            'Discovery stopped'
-        ]
-        bad = [
-            'Failed to start discovery',
-            'Failed to stop discovery',
-            'Invalid argument',
-            'Missing on/off argument'
-        ]
-        result = self._write_command_get_result(
-            "scan " + on_off_arg,
-            good,
-            bad
-        )
-
-        return result
 
     attributes = (
         'Device',
@@ -525,6 +441,24 @@ def validate_write_data(data_written, data_read):
     if data_written != data_read[:len(data_written)]:
         return False
     return True
+
+
+def convert_to_int_list(data, base16=True):
+    """Convert a list with str to a list with integers"""
+
+    data_ = data.split(' ')
+    data__ = []
+    for val in data_:
+        if base16 and 'x' in val:
+            base = 16
+        elif not base16 and 'x' not in val:
+            base = 10
+        else:
+            raise ValueError(
+                "Base is not correct, if using base 10 set base16 to False"
+            )
+        data__.append(int(val, base))
+    return data__
 
 
 def merge_dicts(first, second):
