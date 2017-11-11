@@ -142,8 +142,8 @@ class BlctlEngine(EngineBluew):
         :return: Tuple with (True || False, Reason).
         """
         info = self._info(mac)
-        connected = info.get('Connected', '')
-        if connected == {}:
+        connected = info.get('Connected', None)
+        if connected is None:
             return responses.ConnectFailedResponse()
         if connected == 'yes':
             return responses.ConnectedAlreadyResponse()
