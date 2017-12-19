@@ -13,8 +13,10 @@ by the Requests HTTP library.
 
 from .api import pair, info, trust
 from .api import write_attribute, read_attribute
-from .api import Connection
+from .api import Connection, get_devices
 from .engine import EngineBluewError, EngineBluew
+from .devices import Device
+from .adapters import Adapter
 
 __all__ = ['pair',
            'info',
@@ -23,4 +25,6 @@ __all__ = ['pair',
            'read_attribute',
            'Connection',
            'EngineBluew',
-           'EngineBluewError']
+           'EngineBluewError',
+           'get_devices',
+           'Device']

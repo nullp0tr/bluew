@@ -80,6 +80,36 @@ class EngineBluew(object):
 
         self._raise_not_implemented()
 
+    def info(self, mac):
+        """Template info function to be overridden."""
+        # pylint: disable=W0612,W0613
+
+        self._raise_not_implemented()
+
+    def get_devices(self):
+        """Template get_devices function to be overridden."""
+        # pylint: disable=W0612,W0613
+
+        self._raise_not_implemented()
+
+    def get_controllers(self):
+        """Template get_controllers function to be overridden."""
+        # pylint: disable=W0612,W0613
+
+        self._raise_not_implemented()
+
+    def notify(self, mac, attribute, handler):
+        """Template notify function to be overridden."""
+        # pylint: disable=W0612,W0613
+
+        self._raise_not_implemented()
+
+    def stop_notify(self, mac, attribute):
+        """Template stop_notify function to be overridden."""
+        # pylint: disable=W0612,W0613
+
+        self._raise_not_implemented()
+
     def _raise_not_implemented(self):
         raise EngineBluewError(
             EngineBluewError.NOT_IMPLEMENTED,
@@ -90,6 +120,7 @@ class EngineBluew(object):
 class EngineBluewError(Exception):
     """For those times when the Engine blows."""
 
+    DEVICE_NOT_AVAILABLE = 'Bluew could not find bluetooth device'
     NOT_IMPLEMENTED = 'Used engine does not implement this function'
     NAME_NOT_SET = 'BluewEngine interface does not provice valid name'
     VERSION_NOT_SET = 'BluewEngine interface does not provicd valid version'

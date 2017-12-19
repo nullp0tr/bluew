@@ -18,6 +18,14 @@ Basic usage:
 
 
 from .connections import Connection
+from .plugables import UsedEngine
+
+
+def get_devices():
+    """Get list of devices around."""
+
+    engine = UsedEngine()
+    return engine.get_devices()
 
 
 def pair(mac):

@@ -12,7 +12,6 @@ with one device.
 
 
 import bluew.plugables
-from .responses import ConnectFailedResponse
 
 
 UsedEngine = bluew.plugables.UsedEngine
@@ -33,6 +32,7 @@ class Connection:
     """
 
     def __init__(self, mac, *args, **kwargs):
+        self.keep_alive = kwargs.get('keep_alive', False)
         self.engine = UsedEngine(*args, **kwargs)
         self.mac = mac
         self._connect()
@@ -41,9 +41,10 @@ class Connection:
         return self
 
     def _connect(self):
-        response = self.engine.connect(self.mac)
-        if response == ConnectFailedResponse():
-            raise BluewConnectionError()
+        self.engine._register_agent()
+        self.engine.remove(self.mac)
+        self.engine.connect(self.mac)
+
 
     def _disconnect(self):
         self.engine.disconnect(self.mac)
@@ -61,23 +62,41 @@ class Connection:
         return self.engine.write_attribute(self.mac, attribute, data)
 
     def read_attribute(self, attribute):
-        """Read a bluetooth attribute"""
+        """Read a bluetooth attribute."""
         return self.engine.read_attribute(self.mac, attribute)
 
     def info(self):
-        """Get device info"""
+        """Get device info."""
         return self.engine.info(self.mac)
+
+    def get_controllers(self):
+        """Get available bluetooth controllers."""
+        return self.engine.get_controllers()
+
+    def get_devices(self):
+        """Get available bluetooth devices."""
+        return self.engine.get_devices()
+
+    def notify(self, attribute, handler):
+        """Turn on notifications on attribute, and call handler with data."""
+        return self.engine.notify(self.mac, attribute, handler)
+
+    def stop_notify(self, attribute):
+        """Turn off notifications on attribute."""
+        return self.engine.stop_notify(self.mac, attribute)
 
     def close(self):
         """Close the conncection."""
-
+        self.engine.remove(self.mac)
         self._disconnect()
+        self.engine._unregister_agent()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
+        if not self.keep_alive:
+            self.close()
 
 
-class BluewConnectionError(Exception):
+class BluewError(Exception):
     """ConnectionError is raised when not able to connect"""
 
     def __str__(self):
