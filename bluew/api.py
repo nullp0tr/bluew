@@ -24,8 +24,12 @@ from .plugables import UsedEngine
 def get_devices():
     """Get list of devices around."""
 
-    engine = UsedEngine()
-    return engine.get_devices()
+    # engine = UsedEngine()
+    # engine.start_engine()
+    # devices = engine.get_devices()
+    # engine.stop_engine()
+    with UsedEngine() as engine:
+        return engine.get_devices()
 
 
 def pair(mac):

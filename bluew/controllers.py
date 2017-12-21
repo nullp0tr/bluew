@@ -11,7 +11,7 @@ by any EngineBluew when queried for available adapters.
 """
 
 
-class Adapter(object):
+class Controller(object):
     """Bluetooth Adapter."""
 
     def __init__(self, **kwargs):
@@ -22,7 +22,7 @@ class Adapter(object):
         for key, value in kwargs.items():
             if key not in attrs:
                 raise TypeError(
-                    'BlAdapter should not have attribute ' + key)
+                    'Adapter should not have attribute ' + key)
             setattr(self, key, value)
         for attr in attrs:
             if attr not in self.__dict__:

@@ -14,9 +14,9 @@ by the Requests HTTP library.
 from .api import pair, info, trust
 from .api import write_attribute, read_attribute
 from .api import Connection, get_devices
-from .engine import EngineBluewError, EngineBluew
 from .devices import Device
-from .adapters import Adapter
+from .controllers import Controller
+from .errors import DeviceNotAvailable
 
 __all__ = ['pair',
            'info',
@@ -24,7 +24,6 @@ __all__ = ['pair',
            'write_attribute',
            'read_attribute',
            'Connection',
-           'EngineBluew',
-           'EngineBluewError',
+           'DeviceNotAvailable',
            'get_devices',
            'Device']

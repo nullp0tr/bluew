@@ -13,7 +13,7 @@ This module provides D-Bus interfaces provided by the bluez API.
 import dbus
 from bluew.devices import Device
 from bluew.services import BLEService
-from bluew.adapters import Adapter
+from bluew.controllers import Controller
 from bluew.characteristics import BLECharacteristic
 from bluew.dbusted.utils import dbus_object_parser
 
@@ -103,7 +103,8 @@ class BluezAdapterInterface(object):
             does_not_exist_msg = e_dbus_msg == BLUEZ_DOES_NOT_EXIST_ERROR_DNE
             if does_not_exist_error and does_not_exist_msg:
                 return True
-            else: raise e
+            else:
+                raise e
         return True
 
 
@@ -183,11 +184,20 @@ class BluezDeviceInterface(object):
                                      member_keyword='member',
                                      path='/org/bluez/bluew'
                                      )
-        def raise_e(e):
-            raise e
-        def reply(*args, **kwargs):
+
+        def _handle_error(e):
+            err = e.get_dbus_name()
+            err_msg = e.get_dbus_message()
+            no_reply = err == 'org.freedesktop.DBus.Error.NoReply'
+            if no_reply:
+                pass
+            else:
+                raise e
+
+        def _handle_reply(*args, **kwargs):
             pass
-        self.manager.Pair(reply_handler=reply ,error_handler=raise_e)
+
+        self.manager.Pair(reply_handler=_handle_reply ,error_handler=_handle_error)
 
     def trust_device(self):
         self.prop_manager.Set(DEVICE_IFACE, 'Trusted', True)
@@ -200,6 +210,8 @@ class BluezDeviceInterface(object):
 
 class BluezGattCharInterface(object):
     """Bluez D-Bus GattCharacteristic Interface"""
+
+    __SIGNALS = []
 
     def __init__(self, bus, path):
         self.bus = bus
@@ -241,13 +253,23 @@ class BluezGattCharInterface(object):
                             org.bluez.Error.InProgress
                             org.bluez.Error.NotSupported"""
 
-        self.bus.add_signal_receiver(handler,
-                                     interface_keyword='dbus_interface',
-                                     member_keyword='member',
-                                     path=self.path
-                                     )
+        sig = self.bus.add_signal_receiver(handler, path=self.path)
+        BluezGattCharInterface.__SIGNALS.append((sig, self.path))
         return self.manager.StartNotify()
 
+    def stop_notify(self):
+        def is_corr_signal(sig):
+            signal, path = sig
+            return path == self.path
+        __SIGNALS = []
+        for sig in BluezGattCharInterface.__SIGNALS:
+            if sig[1] == self.path:
+                sig[0].remove()
+            else:
+                __SIGNALS.append(sig)
+        BluezGattCharInterface.__SIGNALS = __SIGNALS
+
+        return self.manager.StopNotify()
 
 class BluezObjectInterface(object):
     """Bluez D-Bus objects Interface"""
@@ -273,7 +295,7 @@ class BluezObjectInterface(object):
 
     def get_controllers(self):
         objects = self._get_objects('org.bluez.Adapter1')
-        adapters = tuple(map(lambda object: Adapter(**object), objects))
+        adapters = tuple(map(lambda object: Controller(**object), objects))
         return adapters
 
 
@@ -306,15 +328,17 @@ class BluezAgentManagerInterface(object):
         self.agent_cap = ''
 
     def register_agent(self):
+        return True
         self.manager.RegisterAgent(self.agent_path, self.agent_cap)
-        self.bus.add_signal_receiver(lambda *args: print('lol'),
-                                     interface_keyword='dbus_interface',
-                                     member_keyword='member',
-                                     path=self.agent_path
-                                     )
+        # self.bus.add_signal_receiver(lambda *args: print('lol'),
+        #                              interface_keyword='dbus_interface',
+        #                              member_keyword='member',
+        #                              path=self.agent_path
+        #                              )
         return True
 
     def unregister_agent(self):
+        return True
         self.manager.UnregisterAgent(self.agent_path)
         return True
 

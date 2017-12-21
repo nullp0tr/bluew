@@ -36,8 +36,10 @@ def dbus_object_parser(dbus_object):
         dbus.String: str,
         dbus.Signature: str,
         dbus.ObjectPath: str,
-        dbus.Byte: dbus.Byte,
+        dbus.Byte: bytes,
     }.get(too, None)
     if handler is None:
         raise ValueError('DBus type provided not supported: ' + str(too))
+    elif handler is bytes:
+        return handler([dbus_object])
     return handler(dbus_object)

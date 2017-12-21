@@ -14,7 +14,7 @@ from bluew.plugables import UsedEngine
 from unittest import TestCase
 from testconfig import config
 from nose.plugins.attrib import attr
-from bluew.engine import EngineBluewError
+from bluew.errors import DeviceNotAvailable
 
 
 @attr('req_engine')
@@ -25,28 +25,28 @@ class APITeststWithoutDev(TestCase):
         """Test pair without device available."""
 
         mac = 'xx:xx:xx:xx:xx'
-        self.assertRaises(EngineBluewError,
+        self.assertRaises(DeviceNotAvailable,
                           bluew.pair, mac=mac)
 
     def test_info(self):
         """Test info without device available"""
 
         mac = 'xx:xx:xx:xx:xx'
-        self.assertRaises(EngineBluewError,
+        self.assertRaises(DeviceNotAvailable,
                           bluew.info, mac=mac)
 
     def test_trust(self):
         """Test trust without device available"""
 
         mac = 'xx:xx:xx:xx:xx'
-        self.assertRaises(EngineBluewError,
+        self.assertRaises(DeviceNotAvailable,
                           bluew.trust, mac=mac)
 
     def test_read_attribute(self):
         """Test read_attribute without device available"""
 
         mac = 'xx:xx:xx:xx:xx'
-        self.assertRaises(EngineBluewError,
+        self.assertRaises(DeviceNotAvailable,
                           bluew.read_attribute,
                           mac=mac, attribute='x')
 
@@ -54,7 +54,7 @@ class APITeststWithoutDev(TestCase):
         """Test write_attribute without device available"""
 
         mac = 'xx:xx:xx:xx:xx'
-        self.assertRaises(EngineBluewError,
+        self.assertRaises(DeviceNotAvailable,
                           bluew.write_attribute,
                           mac=mac, attribute='x',
                           data='0x00')
@@ -97,7 +97,6 @@ class APITestsWithDev(TestCase):
         self.assertTrue(resp)
         self.assertIsInstance(resp, list)
 
-    @attr('here')
     def test_write_attribute(self):
         """Test write_attribute with device available."""
 
@@ -107,36 +106,13 @@ class APITestsWithDev(TestCase):
         self.assertTrue(resp)
 
     def test_get_devices(self):
-        """Test write_attribute with device available."""
+        """Test get_devices with device available."""
 
         mac = config['dev']['testdev1']['mac']
-        attribute = config['dev']['testdev1']['correct_attribute']
-        resp = bluew.get_devices()
-        self.assertTrue(resp)
-
-
-@attr('req_engine')
-@attr('req_dev')
-class ResponseTestWithDev(TestCase):
-    """Test ConnectSucceededResponse and DisconnectSucceededResponse"""
-
-    def test_connect_resp(self):
-        """Test ConnectSucceededResponse"""
-
-        engine = UsedEngine()
-        mac = config['dev']['testdev1']['mac']
-        engine.disconnect(mac)
-        resp = engine.connect(mac)
-        self.assertTrue(resp)
-
-    def test_disconnect_resp(self):
-        """Test DisconnectSucceededResponse"""
-
-        engine = UsedEngine()
-        mac = config['dev']['testdev1']['mac']
-        engine.connect(mac)
-        resp = engine.disconnect(mac)
-        self.assertTrue(resp)
+        devices = bluew.get_devices()
+        has_device = (mac == dev.Address for dev in devices)
+        has_device = list(filter(lambda x: x is True, has_device))
+        self.assertTrue(has_device)
 
 
 @attr('req_engine')
@@ -149,7 +125,10 @@ class ConnectionTestWithDev(TestCase):
         attribute = config['dev']['testdev1']['correct_attribute']
         with bluew.Connection(mac) as connection:
             connection.trust()
-            print('pairing: ')
-            print(connection.pair())
+            connection.pair()
             connection.read_attribute(attribute)
-            connection.write_attribute(attribute, [0x03, 0x01, 0x01])
+            data = [0x03, 0x01, 0x01]
+            connection.write_attribute(attribute, data)
+            attr = connection.read_attribute(attribute)
+            data = [bytes([val]) for val in data]
+            self.assertEqual(attr[:len(data)], data)

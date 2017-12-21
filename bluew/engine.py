@@ -11,6 +11,9 @@ that should be inherited by functioning engines.
 """
 
 
+from bluew.devices import Device
+
+
 class EngineBluew(object):
     """Abstract bluetooth engine for Bluew.
 
@@ -37,94 +40,187 @@ class EngineBluew(object):
     def _validate_name(self):
         if isinstance(self.name, str):
             return
-        raise EngineBluewError(EngineBluewError.NAME_NOT_SET)
+        raise EngineError(EngineError.NAME_NOT_SET)
 
     def _validate_version(self):
         if isinstance(self.version, str):
             return
-        raise EngineBluewError(EngineBluewError.VERSION_NOT_SET)
+        raise EngineError(EngineError.VERSION_NOT_SET)
 
-    def connect(self, mac):
-        """Template connect function to be overridden."""
+    def start_engine(self) -> None:
+        """
+        This function would be called to init the engine before use.
+        :return: None.
+        """
         # pylint: disable=W0612,W0613
 
         self._raise_not_implemented()
 
-    def disconnect(self, mac):
-        """Template disconnect function to be overridden."""
+    def stop_engine(self) -> None:
+        """
+        This function would be called when the engine is not need anymore,
+        for it to close any resources it's using.
+        :return: None.
+        """
         # pylint: disable=W0612,W0613
 
         self._raise_not_implemented()
 
-    def pair(self, mac):
-        """Template pair function to be overridden."""
+    def connect(self, mac: str) -> bool:
+        """
+        This function get's called by Bluew API to connect to device.
+        :param mac: MAC address of device.
+        :return: True if succeeded, False otherwise.
+        """
+        # pylint: disable=W0612,W0613
+
+        self._raise_not_implemented()
+        return False
+
+    def disconnect(self, mac: str) -> bool:
+        """
+        This function get's called by Bluew API to disconnect from a device.
+        :param mac: MAC address of device.
+        :return: True if succeeded, False otherwise.
+        """
+        # pylint: disable=W0612,W0613
+
+        self._raise_not_implemented()
+        return False
+
+    def pair(self, mac: str) -> bool:
+        """
+        This function get's called by Bluew API to pair with a device.
+        :param mac: MAC address of device.
+        :return: True if succeeded, False otherwise.
+        """
+        # pylint: disable=W0612,W0613
+
+        self._raise_not_implemented()
+        return False
+
+    def trust(self, mac: str) -> bool:
+        """
+        This function get's called by Bluew API to trust a device.
+        :param mac: MAC address of device.
+        :return: True if succeeded, False otherwise.
+        """
+        # pylint: disable=W0612,W0613
+
+        self._raise_not_implemented()
+        return False
+
+    def untrust(self, mac: str) -> bool:
+        """
+        This function get's called by Bluew API to remove trust
+        from a device.
+        :param mac: MAC address of device.
+        :return: True if succeeded, False otherwise.
+        """
+        # pylint: disable=W0612,W0613
+
+        self._raise_not_implemented()
+        return False
+
+    def write_attribute(self, mac: str, attribute: str, data: list) -> bool:
+        """
+        This function get's called by Bluew API to write an attribute
+        on a device.
+        :param mac: MAC address of device.
+        :param attribute: UUID of attribute.
+        :param data: List of int values to be written.
+        :return: True if succeeded, False otherwise.
+        """
+        # pylint: disable=W0612,W0613
+
+        self._raise_not_implemented()
+        return False
+
+    def read_attribute(self, mac: str, attribute: str) -> list or None:
+        """
+        This function get's called by Bluew API to read an attribute
+        from a device.
+        :param mac: MAC address of device.
+        :param attribute: UUID of attribute.
+        :return: list of values if succeeded, None otherwise.
+        """
         # pylint: disable=W0612,W0613
 
         self._raise_not_implemented()
 
-    def trust(self, mac):
-        """Template trust function to be overridden."""
+    def info(self, mac: str) -> Device or None:
+        """
+        This function get's called by Bluew API to get information about
+        a device.
+        :param mac: MAC address of device.
+        :return: Device object if succeeded, None otherwise.
+        """
         # pylint: disable=W0612,W0613
 
         self._raise_not_implemented()
 
-    def write_attribute(self, mac, attribute, data):
-        """Template write_attribute function to be overridden."""
+    def get_devices(self) -> list:
+        """
+        This function get's called by Bluew API to get available devices.
+        :return: list of Device objects.
+        """
         # pylint: disable=W0612,W0613
 
         self._raise_not_implemented()
+        return []
 
-    def read_attribute(self, mac, attribute):
-        """Template read_attribute function to be overridden."""
+    def get_controllers(self) -> list:
+        """
+        This function get's called by Bluew API to get available controllers.
+        :return: list of Controller objects.
+        """
         # pylint: disable=W0612,W0613
 
         self._raise_not_implemented()
+        return []
 
-    def info(self, mac):
-        """Template info function to be overridden."""
+    def notify(self, mac: str, attribute: str, handler: callable) -> bool:
+        """
+        This function get's called by Bluew API to stop notifying on a
+        certain attribute.
+        :param mac: MAC adress of device.
+        :param attribute: UUID of attribute.
+        :param handler: This function get's passed the values returned
+        from the attribute in bytes.
+        :return: True if succeeded, False otherwise.
+        """
         # pylint: disable=W0612,W0613
 
         self._raise_not_implemented()
+        return False
 
-    def get_devices(self):
-        """Template get_devices function to be overridden."""
+    def stop_notify(self, mac: str, attribute: str) -> bool:
+        """
+        This function get's called by Bluew API to stop notifying on a
+        certain attribute.
+        :param mac: MAC adress of device.
+        :param attribute: UUID of attribute.
+        :return: True if succeeded, False otherwise.
+        """
         # pylint: disable=W0612,W0613
 
         self._raise_not_implemented()
-
-    def get_controllers(self):
-        """Template get_controllers function to be overridden."""
-        # pylint: disable=W0612,W0613
-
-        self._raise_not_implemented()
-
-    def notify(self, mac, attribute, handler):
-        """Template notify function to be overridden."""
-        # pylint: disable=W0612,W0613
-
-        self._raise_not_implemented()
-
-    def stop_notify(self, mac, attribute):
-        """Template stop_notify function to be overridden."""
-        # pylint: disable=W0612,W0613
-
-        self._raise_not_implemented()
+        return False
 
     def _raise_not_implemented(self):
-        raise EngineBluewError(
-            EngineBluewError.NOT_IMPLEMENTED,
+        raise EngineError(
+            EngineError.NOT_IMPLEMENTED,
             self.name,
             self.version)
 
 
-class EngineBluewError(Exception):
+class EngineError(Exception):
     """For those times when the Engine blows."""
 
-    DEVICE_NOT_AVAILABLE = 'Bluew could not find bluetooth device'
     NOT_IMPLEMENTED = 'Used engine does not implement this function'
     NAME_NOT_SET = 'BluewEngine interface does not provice valid name'
     VERSION_NOT_SET = 'BluewEngine interface does not provicd valid version'
-    INIT_ERROR = 'Engine was not initialized.'
+    INIT_ERROR = 'Engine was not properly initialized.'
 
     def __init__(self, reason, name='', version=''):
         super().__init__()

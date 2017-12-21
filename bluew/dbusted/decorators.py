@@ -11,7 +11,7 @@ This module contains some helper decorators for the dbusted engine.
 
 
 from functools import wraps
-from bluew.engine import EngineBluewError
+from bluew.errors import DeviceNotAvailable
 
 
 def mac_to_dev(func):
@@ -26,9 +26,9 @@ def mac_to_dev(func):
 def check_availablity(func):
     @wraps(func)
     def wrapper(self, dev, *args, **kwargs):
-        available = self._get_device_or_timeout(dev)
+        available = self.is_device_available(dev)
         if not available:
-            raise EngineBluewError(EngineBluewError.DEVICE_NOT_AVAILABLE)
+            raise DeviceNotAvailable(name=self.name, version=self.version)
         return func(self, dev, *args, **kwargs)
     return wrapper
 
