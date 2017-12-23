@@ -32,14 +32,14 @@ def get_devices():
         return engine.get_devices()
 
 
-def pair(mac):
+def pair(mac, *args, **kwargs):
     """Pair with a bluetooth device.
 
     :param mac: MAC address of bluetooth device.
     :return: bluew.Response.
     """
 
-    with Connection(mac) as connection:
+    with Connection(mac, *args, **kwargs) as connection:
         return connection.pair()
 
 

@@ -11,7 +11,10 @@ by any EngineBluew when queried for devices.
 """
 
 
-class Device(object):
+from bluew.ppobj import PPObj
+
+
+class Device(PPObj):
     """Bluetooth device object."""
 
     def __init__(self, **kwargs):
@@ -20,14 +23,4 @@ class Device(object):
                  'Name', 'Paired', 'ServicesResolved', 'Trusted',
                  'UUIDs', 'ManufacturerData', 'RSSI', 'Path',
                  'ServiceData'}
-        for key, value in kwargs.items():
-            if key not in attrs:
-                raise TypeError(
-                    'Device should not have attribute ' + key)
-            setattr(self, key, value)
-
-    def __str__(self):
-        result = ''
-        for key in self.__dict__:
-            result += key + ': ' + str(getattr(self, key)) + '\n'
-        return result
+        super().__init__(attrs, **kwargs)

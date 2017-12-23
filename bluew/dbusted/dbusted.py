@@ -14,13 +14,30 @@ using the bluez D-Bus API.
 import threading
 import time
 
-from dbus.mainloop.glib import DBusGMainLoop
+from typing import List, Optional  # pylint: disable=W0611
 
-from bluew.dbusted.interfaces import *
+from dbus.mainloop.glib import DBusGMainLoop
+import dbus
+
+from bluew.dbusted.interfaces import (BluezGattCharInterface,
+                                      BluezAgentManagerInterface,
+                                      BluezObjectInterface,
+                                      BluezAdapterInterface,
+                                      BluezDeviceInterface,
+                                      Controller,
+                                      Device,
+                                      BLECharacteristic,
+                                      BLEService,
+                                      dbus_object_parser)
+
+from bluew.errors import NoControllerAvailable, ControllerSpecifiedNotFound
 
 from bluew.engine import EngineBluew
 
-from bluew.dbusted.decorators import *
+from bluew.dbusted.decorators import (mac_to_dev,
+                                      check_availablity,
+                                      check_if_connected,
+                                      check_if_paired)
 
 from gi.repository import GLib
 
@@ -30,13 +47,14 @@ class DBusted(EngineBluew):
     DBusted is an EngineBluew implementation, Using the Bluez D-Bus API.
     """
 
-    __instance = None
-    __loop = None
-    __thread = None
-    __bus = None
+    __instance = None  # type: Optional[DBusted]
+    __loop = None  # type: Optional[GLib.MainLoop]
+    __thread = None  # type: Optional[threading.Thread]
+    __bus = None  # type: Optional[dbus.SystemBus]
     __count = 0
 
     def __new__(cls, *args, **kwargs):
+        # pylint: disable=W0612,W0613
         DBusted.__count += 1
         if DBusted.__instance is None:
             DBusted.__instance = object.__new__(cls)
@@ -48,7 +66,7 @@ class DBusted(EngineBluew):
 
     def __init__(self, *args, **kwargs):
         name = "DBusted"
-        version = "0.0.6"
+        version = "0.3.0"
         kwargs['name'] = name
         kwargs['version'] = version
         super().__init__(*args, **kwargs)
@@ -73,58 +91,50 @@ class DBusted(EngineBluew):
                 DBusted.__loop.run()
             except KeyboardInterrupt:
                 running = True
-                pass
 
     def _init_cntrl(self):
+        controllers = self.get_controllers()
         if self.cntrl is None:
-            controllers = self.get_controllers()
-            if len(controllers) == 0:
-                raise Exception('Fuck!')
-            cntrl = controllers[0].Path.replace('/org/bluez/', '')
+            if not controllers:
+                raise NoControllerAvailable()
+            cntrl = self._strip_cntrl_path(controllers[0])
             self.cntrl = cntrl
+        else:
+            paths = list(map(self._strip_cntrl_path, controllers))
+            if self.cntrl not in paths:
+                raise ControllerSpecifiedNotFound()
 
-    @mac_to_dev
-    @check_availablity
-    def connect(self, dev):
-        deviface = BluezDeviceInterface(self._bus, dev, self.cntrl)
-        deviface.connect_device()
-        return True
+    @staticmethod
+    def _strip_cntrl_path(cntrl):
+        return cntrl.Path.replace('/org/bluez/', '')
 
-    @mac_to_dev
-    @check_if_connected
-    @check_availablity
-    def disconnect(self, dev):
-        deviface = BluezDeviceInterface(self._bus, dev, self.cntrl)
-        deviface.disconnect_device()
-        return True
-
-    @mac_to_dev
-    @check_availablity
-    @check_if_paired
-    def pair(self, dev):
-        deviface = BluezDeviceInterface(self._bus, dev, self.cntrl)
-        deviface.pair_device()
-        paired = self.is_device_paired(dev)
-        return paired
-
-    @mac_to_dev
-    # @check_availablity
-    def remove(self, dev):
-        adiface = BluezAdapterInterface(self._bus, self.cntrl)
-        adiface.remove_device(dev)
-        return True
-
-    def start_engine(self):
-        self._register_agent()
+    def start_engine(self) -> None:
+        """
+        Overriding EngineBluew's start_engine method. This method get's called
+        to init the engine. We register here an agent with bluez during the
+        initialization. DBusted is a singleton, and so we only need to init
+        if it's the first instance of DBusted.
+        :return: None.
+        """
+        if DBusted.__count == 1:
+            self._register_agent()
 
     def _register_agent(self):
         amiface = BluezAgentManagerInterface(self._bus)
         return amiface.register_agent()
 
-    def stop_engine(self):
-        self._unregister_agent()
+    def stop_engine(self) -> None:
+        """
+        Overriding EngineBluew's stop_engine method. This method get's called
+        when the engine is not needed any more. Since DBusted is a singleton
+        we should only destroy things when all instaces are gone. Otherwise
+        the engine should keep on running.
+        :return: None.
+        """
+
         DBusted.__count -= 1
         if not DBusted.__count:
+            self._unregister_agent()
             DBusted.__loop.quit()
             DBusted.__instance = None
             DBusted.__loop = None
@@ -135,149 +145,274 @@ class DBusted(EngineBluew):
         amiface = BluezAgentManagerInterface(self._bus)
         return amiface.unregister_agent()
 
-    def get_controllers(self):
-        boiface = BluezObjectInterface(self._bus)
-        return boiface.get_controllers()
+    @mac_to_dev
+    @check_availablity
+    def connect(self, mac: str) -> bool:
+        """
+        Overriding EngineBluew's connect method.
+        :param mac: Device path. @mac_to_dev takes care of getting the proper
+        path from the device's mac address.
+        :return: True if succeeded, False otherwise..
+        """
 
-    def get_devices(self):
-        self.start_scan()
-        boiface = BluezObjectInterface(self._bus)
-        devices = self._timeout(boiface.get_devices, 5)()
-        self.stop_scan()
-        return devices
+        deviface = BluezDeviceInterface(self._bus, mac, self.cntrl)
+        deviface.connect_device()
+        return True
 
     @mac_to_dev
-    def get_services(self, dev):
-        boiface = BluezObjectInterface(self._bus)
-        return boiface.get_services(dev)
+    @check_if_connected
+    @check_availablity
+    def disconnect(self, mac: str) -> bool:
+        """
+        Overriding EngineBluew's disconnect method.
+        :param mac: Device path. @mac_to_dev takes care of getting the proper
+        path from the device's mac address.
+        :return: True if succeeded, False otherwise..
+        """
 
-    @mac_to_dev
-    def get_characteristics(self, dev):
-        boiface = BluezObjectInterface(self._bus)
-        return boiface.get_characteristics(dev)
-
-    def is_device_available(self, dev):
-        devices = self.get_devices()
-        for device in devices:
-            if dev in device.Path:
-                return True
-        return False
-
-    def is_device_paired(self, dev, timeout=5):
-        paired = False
-        start_time = time.time()
-        timed_out = lambda: time.time() > start_time + timeout
-        while (paired is False) and (timed_out() is False):
-            devices = self.get_devices()
-            for device in devices:
-                if dev in device.Path:
-                    paired = device.Paired
-        return paired
-
-    def is_device_connected(self, dev):
-        devices = self.get_devices()
-        for device in devices:
-            connected = device.Connected
-            if dev in device.Path and connected:
-                return True
-        return False
-
-    def __uuid_to_path(self, uuid, dev):
-        chars = self.get_characteristics(dev)
-        for char in chars:
-            if uuid == char.UUID:
-                return char.Path
-
-    def _uuid_to_path(self, uuid, dev, timeout=10):
-        start_time = time.time()
-        timed_out = lambda: time.time() > start_time + timeout
-        path = ''
-        while not path and not timed_out():
-            chars = self.get_characteristics(dev)
-            try:
-                char = list(filter(lambda char: uuid == char.UUID, chars))[0]
-                path = char.Path
-            except IndexError:
-                pass
-        print(path)
-        return path
+        deviface = BluezDeviceInterface(self._bus, mac, self.cntrl)
+        deviface.disconnect_device()
+        return True
 
     @mac_to_dev
     @check_availablity
-    def info(self, dev):
+    @check_if_paired
+    def pair(self, mac: str) -> bool:
+        """
+        Overriding EngineBluew's pair method.
+        :param mac: Device path. @mac_to_dev takes care of getting the proper
+        path from the device's mac address.
+        :return: True if succeeded, False otherwise..
+        """
+
+        deviface = BluezDeviceInterface(self._bus, mac, self.cntrl)
+        deviface.pair_device()
+        paired = self._is_device_paired_timeout(mac)
+        return paired
+
+    @mac_to_dev
+    # @check_availablity
+    def remove(self, mac: str) -> bool:
+        """
+        Overriding EngineBluew's remove method.
+        :param mac: Device path. @mac_to_dev takes care of getting the proper
+        path from the device's mac address.
+        :return: True if succeeded, False otherwise..
+        """
+
+        adiface = BluezAdapterInterface(self._bus, self.cntrl)
+        adiface.remove_device(mac)
+        return True
+
+    def get_controllers(self) -> List[Controller]:
+        """
+        Overriding EngineBluew's get_controllers method.
+        :return: List of controllers available.
+        """
+
+        boiface = BluezObjectInterface(self._bus)
+        return boiface.get_controllers()
+
+    def get_devices(self) -> List[Device]:
+        """
+        Overriding EngineBluew's get_devices method.
+        :return: List of devices available.
+        """
+
+        self._start_scan()
+        boiface = BluezObjectInterface(self._bus)
+        devices = self._timeout(boiface.get_devices, 5)()
+        self._stop_scan()
+        return devices
+
+    @mac_to_dev
+    def get_services(self, mac: str) -> List[BLEService]:
+        """
+        Overriding EngineBluew's get_services method.
+        :param mac: Device path. @mac_to_dev takes care of getting the proper
+        path from the device's mac address.
+        :return: List of BLE services available.
+        """
+
+        boiface = BluezObjectInterface(self._bus)
+        return boiface.get_services(mac)
+
+    @mac_to_dev
+    def get_chrcs(self, mac: str) -> List[BLECharacteristic]:
+        """
+        Overriding EngineBluew's get_chrcs method.
+        :param mac: Device path. @mac_to_dev takes care of getting the proper
+        path from the device's mac address.
+        :return: List of BLE characteristics available.
+        """
+
+        boiface = BluezObjectInterface(self._bus)
+        return boiface.get_characteristics(mac)
+
+    @mac_to_dev
+    @check_availablity
+    def info(self, mac):
+        """
+        Overriding EngineBluew's info method.
+        :param mac: Device path. @mac_to_dev takes care of getting the proper
+        path from the device's mac address.
+        :return: Device object.
+        """
+
         devices = self.get_devices()
-        device = list(filter(lambda x: dev in x.Path, devices))[0]
+        device = list(filter(lambda x: mac in x.Path, devices))[0]
         return device
 
     @mac_to_dev
     @check_availablity
-    def trust(self, dev):
-        deviface = BluezDeviceInterface(self._bus, dev, self.cntrl)
+    def trust(self, mac):
+        """
+        Overriding EngineBluew's trust method.
+        :param mac: Device path. @mac_to_dev takes care of getting the proper
+        path from the device's mac address.
+        :return: True if succeeded, False otherwise..
+        """
+
+        deviface = BluezDeviceInterface(self._bus, mac, self.cntrl)
         deviface.trust_device()
         return True
 
     @mac_to_dev
     @check_availablity
-    def untrust(self, dev):
-        deviface = BluezDeviceInterface(self._bus, dev, self.cntrl)
+    def untrust(self, mac):
+        """
+        Overriding EngineBluew's untrust method.
+        :param mac: Device path. @mac_to_dev takes care of getting the proper
+        path from the device's mac address.
+        :return: True if succeeded, False otherwise..
+        """
+
+        deviface = BluezDeviceInterface(self._bus, mac, self.cntrl)
         deviface.untrust_device()
         return True
 
-    def start_scan(self):
+    def _start_scan(self):
         adiface = BluezAdapterInterface(self._bus, self.cntrl)
         adiface.start_discovery()
         return True
 
-    def stop_scan(self):
+    def _stop_scan(self):
         adiface = BluezAdapterInterface(self._bus, self.cntrl)
         adiface.stop_discovery()
         return True
 
     @mac_to_dev
     @check_availablity
-    def read_attribute(self, dev, uuid):
-        path = self._uuid_to_path(uuid, dev)
+    def read_attribute(self, mac, attribute):
+        """
+        Overriding EngineBluew's read_attribute method.
+        :param mac: Device path. @mac_to_dev takes care of getting the proper
+        path from the device's mac address.
+        :param attribute: UUID of the BLE attribute.
+        :return: Value of attribute, raise exception otherwise.
+        """
+
+        path = self._uuid_to_path(attribute, mac)
         gattchrciface = BluezGattCharInterface(self._bus, path)
         return dbus_object_parser(gattchrciface.read_value())
 
     @mac_to_dev
     @check_availablity
-    def write_attribute(self, dev, uuid, data):
-        path = self._uuid_to_path(uuid, dev)
+    def write_attribute(self, mac, attribute, data):
+        """
+        Overriding EngineBluew's write_attribute method.
+        :param mac: Device path. @mac_to_dev takes care of getting the proper
+        path from the device's mac address.
+        :param attribute: UUID of the BLE attribute.
+        :return: True if succeeded, False otherwise..
+        """
+
+        path = self._uuid_to_path(attribute, mac)
         gattchrciface = BluezGattCharInterface(self._bus, path)
         gattchrciface.write_value(data)
         return True
 
     @mac_to_dev
     @check_availablity
-    def notify(self, dev, uuid, handler):
-        path = self._uuid_to_path(uuid, dev)
+    def notify(self, mac, attribute, handler):
+        """
+        Overriding EngineBluew's trust method.
+        :param mac: Device path. @mac_to_dev takes care of getting the proper
+        path from the device's mac address.
+        :param attribute: UUID of the BLE attribute.
+        :param handler: A callback function with the values returned by the
+        notifications.
+        :return: True if succeeded, False otherwise..
+        """
+
+        path = self._uuid_to_path(attribute, mac)
         gattchrciface = BluezGattCharInterface(self._bus, path)
         handler = self._handle_notification(handler)
         gattchrciface.start_notify(handler)
-        return
+        return True
 
     @mac_to_dev
     @check_availablity
-    def stop_notify(self, dev, uuid):
-        path = self._uuid_to_path(uuid, dev)
+    def stop_notify(self, mac, attribute):
+        """
+        Overriding EngineBluew's trust method.
+        :param mac: Device path. @mac_to_dev takes care of getting the proper
+        path from the device's mac address.
+        :param attribute: UUID of the BLE attribute.
+        :return: True if succeeded, False otherwise..
+        """
+
+        path = self._uuid_to_path(attribute, mac)
         gattchrciface = BluezGattCharInterface(self._bus, path)
         gattchrciface.stop_notify()
         return
 
+    def _is_device_available(self, dev):
+        devices = self.get_devices()
+        filtered = list(filter(lambda device: dev in device.Path, devices))
+        return bool(filtered)
+
+    def _is_device_paired(self, dev):
+        devices = self.get_devices()
+        filtered = list(filter(lambda device: dev in device.Path, devices))
+        filtered = list(filter(lambda device: device.Paired, filtered))
+        return bool(filtered)
+
+    def _is_device_paired_timeout(self, dev, timeout=5):
+        paired = self._timeout(self._is_device_paired, timeout)(dev)
+        return paired
+
+    def _is_device_connected(self, dev):
+        devices = self.get_devices()
+        filtered = list(filter(lambda device: dev in device.Path, devices))
+        filtered = list(filter(lambda device: device.Connected, filtered))
+        return bool(filtered)
+
+    def _get_attr_path(self, uuid, dev):
+        chrcs = self.get_chrcs(dev)
+        try:
+            chrc = list(filter(lambda chrc: uuid == chrc.UUID, chrcs))[0]
+            path = chrc.Path
+        except IndexError:
+            path = ''
+        return path
+
+    def _uuid_to_path(self, uuid, dev, timeout=10):
+        return self._timeout(self._get_attr_path, timeout)(uuid, dev)
+
     @staticmethod
     def _handle_notification(func):
-        def wrapper(*args):
+        def _wrapper(*args):
             try:
                 data = bytes(args[1][dbus.String('Value')])
                 return func(data)
             except KeyError:
                 pass
-        return wrapper
+        return _wrapper
 
     @staticmethod
     def _timeout(func, timeout):
-        def wrapper(*args, **kwargs):
+        def _wrapper(*args, **kwargs):
             result = False
             start_time = time.time()
             current_time = time.time()
@@ -285,4 +420,4 @@ class DBusted(EngineBluew):
                 result = func(*args, **kwargs)
                 current_time = time.time()
             return result
-        return wrapper
+        return _wrapper

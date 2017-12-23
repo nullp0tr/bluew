@@ -27,9 +27,9 @@ def close_on_error(func):
         """This function wraps the function passed to close_on_error()"""
         try:
             return func(self, *args, **kwargs)
-        except Exception as e:
+        except Exception as exp:
             self.close()
-            raise e
+            raise exp
     return wrapper
 
 

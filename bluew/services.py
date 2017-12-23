@@ -11,19 +11,12 @@ by any EngineBluew when queried for device services.
 """
 
 
-class BLEService(object):
+from bluew.ppobj import PPObj
+
+
+class BLEService(PPObj):
     """BLE service object."""
 
     def __init__(self, **kwargs):
         attrs = {'Primary', 'Device', 'UUID', 'Path'}
-        for key, value in kwargs.items():
-            if key not in attrs:
-                raise TypeError(
-                    'BleService should not have attribute ' + key)
-            setattr(self, key, value)
-
-    def __str__(self):
-        result = ''
-        for key in self.__dict__:
-            result += key + ': ' + str(getattr(self, key)) + '\n'
-        return result
+        super().__init__(attrs, **kwargs)

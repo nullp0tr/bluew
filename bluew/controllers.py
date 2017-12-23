@@ -11,25 +11,15 @@ by any EngineBluew when queried for available adapters.
 """
 
 
-class Controller(object):
-    """Bluetooth Adapter."""
+from bluew.ppobj import PPObj
+
+
+class Controller(PPObj):
+    """Bluetooth controller object."""
 
     def __init__(self, **kwargs):
         attrs = {'Alias', 'Powered', 'UUIDs', 'Address',
                  'DiscoverableTimeout', 'Pairable', 'Discoverable',
                  'Class', 'Modalias', 'PairableTimeout', 'Discovering',
                  'Name', 'Path'}
-        for key, value in kwargs.items():
-            if key not in attrs:
-                raise TypeError(
-                    'Adapter should not have attribute ' + key)
-            setattr(self, key, value)
-        for attr in attrs:
-            if attr not in self.__dict__:
-                setattr(self, attr, None)
-
-    def __str__(self):
-        result = ''
-        for key in self.__dict__:
-            result += key + ': ' + str(getattr(self, key)) + '\n'
-        return result[:-1]
+        super().__init__(attrs, **kwargs)

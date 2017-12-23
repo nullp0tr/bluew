@@ -26,4 +26,5 @@ __all__ = ['pair',
            'Connection',
            'DeviceNotAvailable',
            'get_devices',
-           'Device']
+           'Device',
+           'Controller']

@@ -9,7 +9,6 @@ This module provides helper functions for working with dbus.
 :license: MIT, see LICENSE for more details.
 """
 
-
 import dbus
 
 
@@ -22,7 +21,8 @@ def dbus_object_parser(dbus_object):
 
     too = type(dbus_object)
     handler = {
-        dbus.Dictionary: lambda x:
+        dbus.Dictionary:
+            lambda x:
             {dbus_object_parser(key): dbus_object_parser(x[key]) for key in x},
         dbus.Array: lambda x: [dbus_object_parser(y) for y in list(x)],
         dbus.Boolean: bool,

@@ -69,8 +69,10 @@ class APITestsWithDev(TestCase):
         """Test pair with device available."""
 
         mac = config['dev']['testdev1']['mac']
-        resp = bluew.pair(mac)
+        resp = bluew.pair(mac, keep_alive=True)
         self.assertTrue(resp)
+        paired = bluew.info(mac).Paired
+        self.assertTrue(paired)
 
     def test_trust(self):
         """Test trust with device available."""

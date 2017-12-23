@@ -11,7 +11,13 @@ that should be inherited by functioning engines.
 """
 
 
+from typing import Callable, List
+
 from bluew.devices import Device
+from bluew.controllers import Controller
+from bluew.services import BLEService
+from bluew.characteristics import BLECharacteristic
+from bluew.errors import BluewError
 
 
 class EngineBluew(object):
@@ -49,7 +55,7 @@ class EngineBluew(object):
 
     def start_engine(self) -> None:
         """
-        This function would be called to init the engine before use.
+        This function get's called to init the engine before use.
         :return: None.
         """
         # pylint: disable=W0612,W0613
@@ -58,7 +64,7 @@ class EngineBluew(object):
 
     def stop_engine(self) -> None:
         """
-        This function would be called when the engine is not need anymore,
+        This function get's called when the engine is not needed anymore,
         for it to close any resources it's using.
         :return: None.
         """
@@ -75,7 +81,6 @@ class EngineBluew(object):
         # pylint: disable=W0612,W0613
 
         self._raise_not_implemented()
-        return False
 
     def disconnect(self, mac: str) -> bool:
         """
@@ -86,7 +91,6 @@ class EngineBluew(object):
         # pylint: disable=W0612,W0613
 
         self._raise_not_implemented()
-        return False
 
     def pair(self, mac: str) -> bool:
         """
@@ -97,7 +101,6 @@ class EngineBluew(object):
         # pylint: disable=W0612,W0613
 
         self._raise_not_implemented()
-        return False
 
     def trust(self, mac: str) -> bool:
         """
@@ -108,7 +111,6 @@ class EngineBluew(object):
         # pylint: disable=W0612,W0613
 
         self._raise_not_implemented()
-        return False
 
     def untrust(self, mac: str) -> bool:
         """
@@ -120,7 +122,6 @@ class EngineBluew(object):
         # pylint: disable=W0612,W0613
 
         self._raise_not_implemented()
-        return False
 
     def write_attribute(self, mac: str, attribute: str, data: list) -> bool:
         """
@@ -134,9 +135,8 @@ class EngineBluew(object):
         # pylint: disable=W0612,W0613
 
         self._raise_not_implemented()
-        return False
 
-    def read_attribute(self, mac: str, attribute: str) -> list or None:
+    def read_attribute(self, mac: str, attribute: str) -> List[bytes]:
         """
         This function get's called by Bluew API to read an attribute
         from a device.
@@ -148,7 +148,7 @@ class EngineBluew(object):
 
         self._raise_not_implemented()
 
-    def info(self, mac: str) -> Device or None:
+    def info(self, mac: str) -> Device:
         """
         This function get's called by Bluew API to get information about
         a device.
@@ -159,7 +159,7 @@ class EngineBluew(object):
 
         self._raise_not_implemented()
 
-    def get_devices(self) -> list:
+    def get_devices(self) -> List[Device]:
         """
         This function get's called by Bluew API to get available devices.
         :return: list of Device objects.
@@ -167,9 +167,8 @@ class EngineBluew(object):
         # pylint: disable=W0612,W0613
 
         self._raise_not_implemented()
-        return []
 
-    def get_controllers(self) -> list:
+    def get_controllers(self) -> List[Controller]:
         """
         This function get's called by Bluew API to get available controllers.
         :return: list of Controller objects.
@@ -177,9 +176,28 @@ class EngineBluew(object):
         # pylint: disable=W0612,W0613
 
         self._raise_not_implemented()
-        return []
 
-    def notify(self, mac: str, attribute: str, handler: callable) -> bool:
+    def get_services(self, mac: str) -> List[BLEService]:
+        """
+        This function get's called by Bluew API to get available services
+        of a BLE device.
+        :return: list of BLESerivce objects.
+        """
+        # pylint: disable=W0612,W0613
+
+        self._raise_not_implemented()
+
+    def get_chrcs(self, mac: str) -> List[BLECharacteristic]:
+        """
+        This function get's called by Bluew API to get availbe characteristics
+        of a BLE device.
+        :return: list of BLECharacteristic objects.
+        """
+        # pylint: disable=W0612,W0613
+
+        self._raise_not_implemented()
+
+    def notify(self, mac: str, attribute: str, handler: Callable) -> bool:
         """
         This function get's called by Bluew API to stop notifying on a
         certain attribute.
@@ -192,7 +210,6 @@ class EngineBluew(object):
         # pylint: disable=W0612,W0613
 
         self._raise_not_implemented()
-        return False
 
     def stop_notify(self, mac: str, attribute: str) -> bool:
         """
@@ -205,7 +222,6 @@ class EngineBluew(object):
         # pylint: disable=W0612,W0613
 
         self._raise_not_implemented()
-        return False
 
     def _raise_not_implemented(self):
         raise EngineError(
@@ -214,19 +230,10 @@ class EngineBluew(object):
             self.version)
 
 
-class EngineError(Exception):
+class EngineError(BluewError):
     """For those times when the Engine blows."""
 
     NOT_IMPLEMENTED = 'Used engine does not implement this function'
     NAME_NOT_SET = 'BluewEngine interface does not provice valid name'
     VERSION_NOT_SET = 'BluewEngine interface does not provicd valid version'
     INIT_ERROR = 'Engine was not properly initialized.'
-
-    def __init__(self, reason, name='', version=''):
-        super().__init__()
-        self.engine_name = name
-        self.version = version
-        self.reason = reason
-
-    def __str__(self):
-        return self.reason
