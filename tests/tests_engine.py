@@ -39,14 +39,6 @@ class ValidationTest(TestCase):
         else:
             self.assertFalse(True)
 
-    def test_engine_error(self):
-        """Test EngineBluewError."""
-
-        try:
-            EngineBluew()
-        except EngineError as exp:
-            self.assertEqual(str(exp), exp.reason)
-
 
 @attr('req_engine')
 class APICallsTest(TestCase):
@@ -115,7 +107,7 @@ class APICallsTest(TestCase):
             self.assertEqual(exp.reason, EngineError.NOT_IMPLEMENTED)
 
     def test_write_attribute(self):
-        """Test read_attribute"""
+        """Test write_attribute"""
 
         engine = EngineBluew(name='name', version='version')
         mac = 'xx:xx:xx:xx:xx'
