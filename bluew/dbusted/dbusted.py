@@ -68,7 +68,7 @@ class DBusted(EngineBluew):
 
     def __init__(self, *args, **kwargs):
         name = "DBusted"
-        version = "0.3.1"
+        version = "0.3.2"
         kwargs['name'] = name
         kwargs['version'] = version
         super().__init__(*args, **kwargs)
@@ -291,7 +291,7 @@ class DBusted(EngineBluew):
         """
 
         deviface = BluezDeviceInterface(self._bus, mac, self.cntrl)
-        deviface.untrust_device()
+        deviface.distrust_device()
 
     def _start_scan(self) -> None:
         adiface = BluezAdapterInterface(self._bus, self.cntrl)

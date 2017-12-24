@@ -45,8 +45,8 @@ BLUEZ_DOES_NOT_EXIST_ERROR_DNE = 'Does Not Exist'
 BLUEZ_IN_PROGRESS_ERROR = 'org.bluez.Error.InProgress'
 BLUEZ_IN_PROGRESS_ERROR_OAIP = 'Operation already in progress'
 
-DBUS_NO_REPLY_ERROR = 'org.freedesktop.DBus.Error.NoReply'
-DBUS_UNKNOWN_OBJ_ERROR = 'org.freedesktop.DBus.Error.UnknownObject'
+DBUS_NO_REPLY_ERR = 'org.freedesktop.DBus.Error.NoReply'
+DBUS_UNKNOWN_OBJ_ERR = 'org.freedesktop.DBus.Error.UnknownObject'
 
 
 def get_exp_name_msg(exp: dbus.DBusException) -> Tuple[str, str]:
@@ -123,7 +123,7 @@ class BluezAdapterInterface(object):
 
 
 class BluezDeviceInterface(object):
-    """Bluez D-Bus device interface."""
+    """Bluez D-Bus device interface: org.bluez.Device1"""
 
     DEVICE_IFACE = 'org.bluez.Device1'
 
@@ -137,97 +137,126 @@ class BluezDeviceInterface(object):
         self.prop_manager = dbus.Interface(bluez_obj, DBUS_PROP_IFACE)
 
     def connect_device(self):
-        # TODO : HANDLE FOLLOWING ERRORS
-        """Possible errors:
-                            org.bluez.Error.NotReady
-                            org.bluez.Error.Failed
-                            org.bluez.Error.InProgress
-        """
+        """Connect() method on org.bluez.Device1 Interface"""
 
         try:
             self.manager.Connect()
         except dbus.DBusException as exp:
-            self._handle_connection_error(exp)
+            self._handle_connect_error(exp)
         return True
 
-    def _handle_connection_error(self, exp):
+    def _handle_connect_error(self, exp: dbus.DBusException) -> None:
+        bzerr = BluezInterfaceError
         if error_is(exp, BLUEZ_FAILED_ERROR_OAIP):
-            self._err_retry()
-        elif error_is(exp, BLUEZ_ALREADY_CONNECTED_ERROR):
-            return True
-        elif error_is(exp, DBUS_NO_REPLY_ERROR):
-            return False
+            # ERROR: org.bluez.Error.Failed
+            self._err_connect_retry()
+
+        elif error_is(exp, bzerr.BLUEZ_IN_PROGRESS_ERR):
+            # ERROR: org.bluez.Error.InProgress
+            self._err_connect_retry()
+
+        elif error_is(exp, bzerr.BLUEZ_ALREADY_CONNECTED_ERR):
+            # ERROR: org.bluez.Error.AlreadyConnected
+            return
+
+        elif error_is(exp, bzerr.BLUEZ_NOT_READY_ERR):
+            # ERROR: org.bluez.Error.NotReady
+            raise bzerr(bzerr.BLUEZ_NOT_READY_ERR)
+
+        elif error_is(exp, bzerr.DBUS_NO_REPLY_ERR):
+            raise bzerr(bzerr.DBUS_NO_REPLY_ERR)
+
         else:
             raise exp
 
-    def _err_retry(self):
+    def _err_connect_retry(self):
         self.disconnect_device()
         self.connect_device()
 
     def disconnect_device(self):
-        # TODO : HANDLE FOLLOWING ERRORS
-        """Possible errors: org.bluez.Error.NotConnected"""
+        """Disconnect() method on org.bluez.Device1 Interface"""
+
         try:
             self.manager.Disconnect()
         except dbus.DBusException as exp:
-            e_dbus_name = exp.get_dbus_name()
-            e_dbus_msg = exp.get_dbus_message()
-            if e_dbus_name == BLUEZ_FAILED_ERROR:
-                if e_dbus_msg == BLUEZ_FAILED_NOT_CONNECTED:
-                    return True
-                else:
-                    raise exp
-            else:
-                raise exp
-        return True
+            self._handle_disconnect_error(exp)
+        return
+
+    @staticmethod
+    def _handle_disconnect_error(exp: dbus.DBusException) -> None:
+        bzerr = BluezInterfaceError
+        if error_is(exp, bzerr.BLUEZ_ERR_MSG_NOT_CONNECTED):
+            # ERROR: org.bluez.Error.Failed
+            return
+        elif error_is(exp, bzerr.BLUEZ_NOT_CONNECTED_ERR):
+            # ERROR: org.bluez.Error.NotConnected
+            return
+        else:
+            raise exp
 
     def pair_device(self):
         # TODO : HANDLE FOLLOWING ERRORS
         """Possible errors:
-                            org.bluez.Error.InvalidArguments
-                            org.bluez.Error.Failed
-                            org.bluez.Error.AlreadyExists
-                            org.bluez.Error.AuthenticationCanceled
-                            org.bluez.Error.AuthenticationFailed
-                            org.bluez.Error.AuthenticationRejected
-                            org.bluez.Error.AuthenticationTimeout
-                            org.bluez.Error.ConnectionAttemptFailed"""
-        self.bus.add_signal_receiver(lambda *args: print('lol'),
-                                     interface_keyword='dbus_interface',
-                                     member_keyword='member',
-                                     path='/org/bluez/bluew')
+        org.bluez.Error.AuthenticationFailed
+        org.bluez.Error.AuthenticationRejected
+        org.bluez.Error.AuthenticationTimeout"""
 
-        def _handle_error(exp):
-            # This is a hack because of two errors that bluez raises, even
-            # when pairing succeeds. Problem with NoReply is that it takes too
-            # long, so we just pass this function to handle the errors, while
-            # we're checking if device got paired. If we find that the device
-            # is already paired we terminate regardless and return, which
-            # sometimes triggers AuthenticationCanceled cause bluez thinks it
-            # hasn't succeeded in pairing?
-            err = exp.get_dbus_name()
-            no_reply = err == 'org.freedesktop.DBus.Error.NoReply'
-            auth_cancelled = err == 'org.bluez.Error.AuthenticationCanceled'
-            if no_reply or auth_cancelled:
-                pass
-            else:
-                raise exp
+        self.manager.Pair(reply_handler=lambda *args, **kwargs: None,
+                          error_handler=self._handle_pair_error)
 
-        def _handle_reply(*args, **kwargs):
-            # pylint: disable=W0612,W0613
-            # We don't really need to handle the reply.
-            pass
+    @staticmethod
+    def _handle_pair_error(exp: dbus.DBusException) -> None:
+        bzerr = BluezInterfaceError
+        if error_is(exp, bzerr.BLUEZ_AUTH_CANCELLED_ERR):
+            # ERROR: org.bluez.Error.AuthenticationCanceled
+            # Since we haven't implemented CancelPairing, the only logical
+            # cause for this error is the device disappearing amidst pairing.
+            raise bzerr(bzerr.BLUEZ_AUTH_CANCELLED_ERR)
 
-        self.manager.Pair(reply_handler=_handle_reply,
-                          error_handler=_handle_error)
+        elif error_is(exp, bzerr.BLUEZ_ALREADY_EXISTS_ERR):
+            # ERROR: org.bluez.Error.AlreadyExists
+            # This isn't really an error, this just tells us that the device
+            # is already paired.
+            return
+
+        elif error_is(exp, bzerr.BLUEZ_INVALID_ARGUMENTS_ERR):
+            # ERROR: org.bluez.Error.InvalidArguments
+            # This should never happen as long as nobody passes
+            # manager.Pair() an argument other than reply_handler &
+            # error_handler.
+            raise bzerr(bzerr.BLUEZ_INVALID_ARGUMENTS_ERR)
+
+        elif error_is(exp, bzerr.BLUEZ_FAILED_ERR):
+            # ERROR: org.bluez.Error.Failed
+            # Can be caused by an error during connection, like when a device
+            # is not around, or by an error during the bonding because another
+            # device is pairing, Don't be ambiguous check for availability
+            # beforehand.
+            raise bzerr(bzerr.BLUEZ_FAILED_ERR)
+
+        elif error_is(exp, bzerr.BLUEZ_CONN_ATTEMPT_FAILED_ERR):
+            # ERROR: org.bluez.Error.ConnectionAttemptFailed
+            # This is caused when the connection attempt before pairing
+            # fails. Connect before pairing to avoid this on.
+            raise bzerr(bzerr.BLUEZ_CONN_ATTEMPT_FAILED_ERR)
+
+        elif error_is(exp, bzerr.DBUS_NO_REPLY_ERR):
+            # ERROR: org.freedesktop.DBus.Error.NoReply
+            # D-Bus times out some times before bluez sends a reply
+            # and sometimes even though the pairing has already suceeded
+            # before the timeout, this error still get's raised.
+            return
+
+        else:
+            raise exp
 
     def trust_device(self):
-        """Possible Errors: """
+        """Change Trusted property to True"""
         self.prop_manager.Set(DEVICE_IFACE, 'Trusted', True)
         return True
 
-    def untrust_device(self):
-        """Possible Errors: """
+    def distrust_device(self):
+        """Changed Trusted property to False"""
         self.prop_manager.Set(DEVICE_IFACE, 'Trusted', False)
         return True
 
@@ -390,3 +419,43 @@ class BluezMediaInterface(object):
 class BluezNetworkServerInterface(object):
     """To be implemented."""
     pass
+
+
+class BluezInterfaceError(Exception):
+    """
+    BluezInterfaceError get's raised when the interface,
+    has no way of solving the problem, and delegates it instead to
+    the DBusted.
+    """
+    BLUEZ_ERR = 'org.bluez.Error.'
+    BLUEZ_FAILED_ERR = BLUEZ_ERR + 'Failed'
+    BLUEZ_ALREADY_CONNECTED_ERR = BLUEZ_ERR + 'AlreadyConnected'
+    BLUEZ_DOES_NOT_EXIST_ERR = BLUEZ_ERR + 'DoesNotExist'
+    BLUEZ_IN_PROGRESS_ERR = BLUEZ_ERR + 'InProgress'
+    BLUEZ_NOT_READY_ERR = BLUEZ_ERR + 'NotReady'
+    BLUEZ_AGENT_NOT_AVAILABLE_ERR = BLUEZ_ERR + 'AgentNotAvailable'
+    BLUEZ_NO_SUCH_ADAPTER_ERR = BLUEZ_ERR + 'NoSuchAdapter'
+    BLUEZ_NOT_PERMITTED_ERR = BLUEZ_ERR + 'NotPermitted'
+    BLUEZ_NOT_AUTHORIZED_ERR = BLUEZ_ERR + 'NotAuthorized'
+    BLUEZ_NOT_AVAILABLE_ERR = BLUEZ_ERR + 'NotAvailable'
+    BLUEZ_NOT_CONNECTED_ERR = BLUEZ_ERR + 'NotConnected'
+    BLUEZ_NOT_SUPPORTED_ERR = BLUEZ_ERR + 'NotSupported'
+    BLUEZ_ALREADY_EXISTS_ERR = BLUEZ_ERR + 'AlreadyExists'
+    BLUEZ_INVALID_ARGUMENTS_ERR = BLUEZ_ERR + 'InvalidArguments'
+    BLUEZ_AUTH_CANCELLED_ERR = BLUEZ_ERR + 'AuthenticationCanceled'
+    BLUEZ_CONN_ATTEMPT_FAILED_ERR = BLUEZ_ERR + 'ConnectionAttemptFailed'
+    BLUEZ_AUTH_FAILED_ERR = BLUEZ_ERR + 'AuthenticationFailed'
+    BLUEZ_AUTH_REJECTED_ERR = BLUEZ_ERR + 'AuthenticationRejected'
+    BLUEZ_AUTH_TIMEOUT_ERR = BLUEZ_ERR + 'AuthenticationTimeout'
+
+    BLUEZ_ERR_MSG_OAIP = 'Operation already in progress'
+    # BLUEZ_FAILED_ERROR_NO_ATT = 'No ATT transport'
+    BLUEZ_ERR_MSG_NOT_CONNECTED = 'Not connected'
+    # BLUEZ_DOES_NOT_EXIST_ERROR_DNE = 'Does Not Exist'
+    # BLUEZ_IN_PROGRESS_ERROR_OAIP = 'Operation already in progress'
+    DBUS_NO_REPLY_ERR = 'org.freedesktop.DBus.Error.NoReply'
+    DBUS_UNKNOWN_OBJ_ERR = 'org.freedesktop.DBus.Error.UnknownObject'
+
+    def __init__(self, error_name):
+        super().__init__()
+        self.error_name = error_name
