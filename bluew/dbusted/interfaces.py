@@ -65,61 +65,100 @@ class BluezAdapterInterface(object):
 
     ADAPTER_IFACE = 'org.bluez.Adapter1'
 
-    def __init__(self, bus, controller='hci0'):
+    def __init__(self, bus, controller):
         self.cntrl = controller
         bluez_obj = bus.get_object(BLUEZ_SERVICE_NAME,
                                    BLUEZ_SERVICE_PATH + self.cntrl)
         self.manager = dbus.Interface(bluez_obj, ADAPTER_IFACE)
 
-    def start_discovery(self):
-        # TODO: HANDLE FOLLOWING ERRORS
-        """Possible errors: org.bluez.Error.NotReady
-                            org.bluez.Error.Failed"""
+    def start_discovery(self) -> None:
+        """StartDiscovery() method on org.bluez.Adapter1 Interface."""
+
         try:
             self.manager.StartDiscovery()
         except dbus.DBusException as exp:
-            err_msg = exp.get_dbus_message()
-            in_progress = err_msg == BLUEZ_IN_PROGRESS_ERROR_OAIP
-            if in_progress:
-                return True
-            else:
-                raise exp
-        return True
+            self._handle_start_discovery_error(exp)
 
-    def stop_discovery(self):
-        # TODO: HANDLE FOLLOWING ERRORS
-        """Possible errors: org.bluez.Error.NotReady
-                            org.bluez.Error.Failed
-                            org.bluez.Error.NotAuthorized"""
+    @staticmethod
+    def _handle_start_discovery_error(exp: dbus.DBusException) -> None:
+        bzerr = BluezInterfaceError
+        if error_is(exp, bzerr.BLUEZ_ERR_MSG_OAIP):
+            # ERROR: org.bluez.Error.Failed && org.bluez.Error.InProgress
+            # If already scanning we got no business turning on scanning
+            # again.
+            return
+
+        elif error_is(exp, bzerr.BLUEZ_NOT_READY_ERR):
+            # ERROR: org.bluez.Error.NotReady
+            # This error get's thrown when the bluetooth adapter/controller
+            # is not ready for action, aka not turned on.
+            raise bzerr(bzerr.BLUEZ_NOT_READY_ERR)
+
+        else:
+            raise exp
+
+    def stop_discovery(self) -> None:
+        """StopDiscovery() method on org.bluez.Adapter1 Interface."""
+
         try:
             self.manager.StopDiscovery()
         except dbus.DBusException as exp:
-            err_msg = exp.get_dbus_message()
-            not_scanning = err_msg == 'No discovery started'
-            if not_scanning:
-                return True
-            else:
-                raise exp
-        return True
+            self._handle_stop_disovery_error(exp)
 
-    def remove_device(self, dev):
-        # TODO: HANDLE FOLLOWING ERROS
-        """Possible errors:
-                            org.Bluez.DoesNotExist: Does Not Exist
-                            org.bluez.Error.InvalidArguments
-                            org.bluez.Error.Failed"""
+    @staticmethod
+    def _handle_stop_disovery_error(exp: dbus.DBusException) -> None:
+        bzerr = BluezInterfaceError
+        if error_is(exp, bzerr.BLUEZ_ERR_MSG_NO_DISCOV_STARTED):
+            # ERROR: org.bluez.Error.Failed
+            # This error get's thrown with this message when we're trying
+            # to stop discovery before even starting it.
+            return
+
+        elif error_is(exp, bzerr.BLUEZ_NOT_READY_ERR):
+            # ERROR: org.bluez.Error.NotReady
+            # This the usual adapter/controller not ready, aka not turned on,
+            # at least in most cases.
+            raise bzerr(bzerr.BLUEZ_NOT_READY_ERR)
+
+        elif error_is(exp, bzerr.BLUEZ_NOT_AUTHORIZED_ERR):
+            # ERROR: org.bluez.Error.NotAuthorized
+            # From what I can tell from the bluez source code, this error
+            # doesn't get thrown from this method.
+            raise bzerr(bzerr.BLUEZ_NOT_AUTHORIZED_ERR)
+
+        else:
+            raise exp
+
+    def remove_device(self, dev: str) -> None:
+        """RemoveDevice() method on org.bluez.Adapter1 Interface."""
+
         try:
             self.manager.RemoveDevice(BLUEZ_SERVICE_PATH + self.cntrl + dev)
         except dbus.DBusException as exp:
-            e_dbus_name = exp.get_dbus_name()
-            e_dbus_msg = exp.get_dbus_message()
-            does_not_exist_error = e_dbus_name == BLUEZ_DOES_NOT_EXIST_ERROR
-            does_not_exist_msg = e_dbus_msg == BLUEZ_DOES_NOT_EXIST_ERROR_DNE
-            if does_not_exist_error and does_not_exist_msg:
-                return True
-            else:
-                raise exp
-        return True
+            self._handle_remove_device_error(exp)
+
+    @staticmethod
+    def _handle_remove_device_error(exp: dbus.DBusException) -> None:
+        bzerr = BluezInterfaceError
+        if error_is(exp, bzerr.BLUEZ_DOES_NOT_EXIST_ERR):
+            # ERROR: org.Bluez.DoesNotExist
+            # Device does not exist and thus doesn't need to be removed.
+            return
+
+        elif error_is(exp, bzerr.BLUEZ_INVALID_ARGUMENTS_ERR):
+            # ERROR: org.bluez.Error.InvalidArguments
+            # Device argument is probably wrong, or more or less than needed
+            # arguments were passed.
+            raise bzerr(bzerr.BLUEZ_INVALID_ARGUMENTS_ERR)
+
+        elif error_is(exp, bzerr.BLUEZ_NOT_READY_ERR):
+            # ERROR: org.bluez.Error.NotReady
+            # Adapter or controller is not ready, aka turned off, or not even
+            # available.
+            raise bzerr(bzerr.BLUEZ_NOT_READY_ERR)
+
+        else:
+            raise exp
 
 
 class BluezDeviceInterface(object):
@@ -478,7 +517,7 @@ class BluezInterfaceError(Exception):
     # BLUEZ_FAILED_ERROR_NO_ATT = 'No ATT transport'
     BLUEZ_ERR_MSG_NOT_CONNECTED = 'Not connected'
     # BLUEZ_DOES_NOT_EXIST_ERROR_DNE = 'Does Not Exist'
-    # BLUEZ_IN_PROGRESS_ERROR_OAIP = 'Operation already in progress'
+    BLUEZ_ERR_MSG_NO_DISCOV_STARTED = 'No discovery started'
     DBUS_NO_REPLY_ERR = 'org.freedesktop.DBus.Error.NoReply'
     DBUS_UNKNOWN_OBJ_ERR = 'org.freedesktop.DBus.Error.UnknownObject'
 
