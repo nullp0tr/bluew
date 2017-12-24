@@ -68,7 +68,7 @@ class DBusted(EngineBluew):
 
     def __init__(self, *args, **kwargs):
         name = "DBusted"
-        version = "0.3.4"
+        version = "0.3.4.5"
         kwargs['name'] = name
         kwargs['version'] = version
         super().__init__(*args, **kwargs)

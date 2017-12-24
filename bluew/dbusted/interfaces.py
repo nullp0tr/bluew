@@ -282,13 +282,13 @@ class BluezDeviceInterface(object):
             # Can be caused by an error during connection, like when a device
             # is not around, or by an error during the bonding because another
             # device is pairing, Don't be ambiguous check for availability
-            # beforehand.
+            # beforehand, so you *MIGHT* assume that another device is paring.
             raise bzerr(bzerr.BLUEZ_FAILED_ERR)
 
         elif error_is(exp, bzerr.BLUEZ_CONN_ATTEMPT_FAILED_ERR):
             # ERROR: org.bluez.Error.ConnectionAttemptFailed
             # This is caused when the connection attempt before pairing
-            # fails. Connect before pairing to avoid this on.
+            # fails. Connect before pairing to avoid this one.
             raise bzerr(bzerr.BLUEZ_CONN_ATTEMPT_FAILED_ERR)
 
         elif error_is(exp, bzerr.BLUEZ_AUTH_FAILED_ERR):
@@ -337,30 +337,121 @@ class BluezGattCharInterface(object):
         self.manager = dbus.Interface(bluez_obj, GATT_CHRC_IFACE)
         self.path = path
 
-    def read_value(self):
-        # TODO: HANDLE FOLLOWING ERRORS
-        """Possible Errors:
-                            org.bluez.Error.Failed
-                            org.bluez.Error.InProgress
-                            org.bluez.Error.NotPermitted
-                            org.bluez.Error.NotAuthorized
-                            org.bluez.Error.NotSupported"""
-        options = {'s': 's'}
-        return self.manager.ReadValue(options)
-
-    def write_value(self, data):
-        # TODO: HANDLE FOLLOWING ERRORS
-        """Possible Errors:
-                            org.bluez.Error.Failed: Not connected.
-                            org.bluez.Error.Failed: No ATT transport.
-                            org.bluez.Error.InProgress
-                            org.bluez.Error.NotPermitted
-                            org.bluez.Error.InvalidValueLength
-                            org.bluez.Error.NotAuthorized
-                            org.bluez.Error.NotSupported"""
+    def read_value(self) -> dbus.Array:
+        """ReadValue() method on org.bluez.GattCharacteristic1 Interface."""
 
         options = {'s': 's'}
-        self.manager.WriteValue(data, options)
+        try:
+            return self.manager.ReadValue(options)
+        except dbus.DBusException as exp:
+            self._handle_read_value_error(exp)
+
+    @staticmethod
+    def _handle_read_value_error(exp: dbus.DBusException) -> None:
+        bzerr = BluezInterfaceError
+        if error_is(exp, bzerr.BLUEZ_ERR_MSG_NOT_CONNECTED):
+            # ERROR: org.bluez.Error.Failed
+            # Bluez throws an Error.Failed with a 'Not connected' message,
+            # when the device is well... not connected. Just always connect
+            # before hand, so you know this error occurred because the device
+            # disappeared.
+            raise bzerr(bzerr.BLUEZ_NOT_CONNECTED_ERR)
+
+        elif error_is(exp, bzerr.BLUEZ_ERR_MSG_FTSRR):
+            # ERROR: org.bluez.Error.Failed
+            # Bluez also throws an Error.Failed with a different the message,
+            # 'Failed to send read request'. The details of this can happen
+            # are wait too long for a comment.
+            raise bzerr(bzerr.UNKNOWN_ERROR)
+
+        elif error_is(exp, bzerr.BLUEZ_IN_PROGRESS_ERR):
+            # ERROR: org.bluez.Error.InProgress
+            # You shouldn't be reading an attribute before another read is
+            # done. If the attribute is volatile and changing, use notify
+            # instead.
+            raise bzerr(bzerr.BLUEZ_IN_PROGRESS_ERR)
+
+        elif error_is(exp, bzerr.BLUEZ_NOT_PERMITTED_ERR):
+            # ERROR: org.bluez.Error.NotPermitted
+            # This error get's thrown when you're trying to read an attribute
+            # you shouldn't be trying to READ!
+            raise bzerr(bzerr.BLUEZ_NOT_PERMITTED_ERR)
+
+        elif error_is(exp, bzerr.BLUEZ_NOT_AUTHORIZED_ERR):
+            # ERROR: org.bluez.Error.NotAuthorized
+            # This error means you can't read this attribute without
+            # pairing.
+            raise bzerr(bzerr.BLUEZ_NOT_AUTHORIZED_ERR)
+
+        elif error_is(exp, bzerr.BLUEZ_NOT_SUPPORTED_ERR):
+            # ERROR: org.bluez.Error.NotSupported
+            # This error means that the OpCode of the attribute is not
+            # supported by the server.
+            raise bzerr(bzerr.BLUEZ_NOT_SUPPORTED_ERR)
+
+        else:
+            raise exp
+
+    def write_value(self, data: List[int]) -> None:
+        """WriteValue() method on org.bluez.GattCharacteristic1 Interface."""
+
+        options = {'s': 's'}
+        try:
+            self.manager.WriteValue(data, options)
+        except dbus.DBusException as exp:
+            self._handle_write_value_error(exp)
+
+    @staticmethod
+    def _handle_write_value_error(exp: dbus.DBusException) -> None:
+        bzerr = BluezInterfaceError
+        if error_is(exp, bzerr.BLUEZ_ERR_MSG_NOT_CONNECTED):
+            # ERROR: org.bluez.Error.Failed
+            # Bluez throws an Error.Failed with a 'Not connected' message,
+            # when the device is well... not connected. Just always connect
+            # before hand, so you know this error occurred because the device
+            # disappeared.
+            raise bzerr(bzerr.BLUEZ_NOT_CONNECTED_ERR)
+
+        elif error_is(exp, bzerr.BLUEZ_ERR_MSG_NO_ATT):
+            # ERROR: org.bluez.Error.Failed
+            # Can be caused by a host of things, but can also be caused by
+            # the device disappearing during write.
+            raise bzerr(bzerr.BLUEZ_NOT_AVAILABLE_ERR)
+
+        elif error_is(exp, bzerr.BLUEZ_ERR_MSG_FTIW):
+            # ERROR: org.bluez.Error.Failed
+            # This one here happens i *THINK* when a wrong option flag
+            # is passed to WriteValue.
+            raise bzerr(bzerr.BLUEZ_FAILED_ERR)
+
+        elif error_is(exp, bzerr.BLUEZ_IN_PROGRESS_ERR):
+            # ERROR: org.bluez.Error.InProgress
+            # You shouldn't be writing again during a write operation.
+            raise bzerr(bzerr.BLUEZ_IN_PROGRESS_ERR)
+
+        elif error_is(exp, bzerr.BLUEZ_NOT_PERMITTED_ERR):
+            # ERROR: org.bluez.Error.NotPermitted
+            # This error get's thrown when you're trying to write an attribute
+            # you shouldn't be trying to READ!
+            raise bzerr(bzerr.BLUEZ_NOT_PERMITTED_ERR)
+
+        elif error_is(exp, bzerr.BLUEZ_NOT_AUTHORIZED_ERR):
+            # ERROR: org.bluez.Error.NotAuthorized
+            # This error means you can't write this attribute without
+            # pairing.
+            raise bzerr(bzerr.BLUEZ_NOT_AUTHORIZED_ERR)
+
+        elif error_is(exp, bzerr.BLUEZ_NOT_SUPPORTED_ERR):
+            # ERROR: org.bluez.Error.NotSupported
+            # This error means that the OpCode of the attribute is not
+            # supported by the server.
+            raise bzerr(bzerr.BLUEZ_NOT_SUPPORTED_ERR)
+
+        elif error_is(exp, bzerr.BLUEZ_INVALID_VAL_LEN):
+            # ERROR: org.bluez.Error.InvalidValueLength
+            # The data list passed is too long or too short, most likely too
+            # long for the attribute.
+            raise bzerr(bzerr.BLUEZ_INVALID_VAL_LEN)
 
     def start_notify(self, handler):
         # TODO: HANDLE FOLLOWING ERRORS
@@ -512,14 +603,19 @@ class BluezInterfaceError(Exception):
     BLUEZ_AUTH_FAILED_ERR = BLUEZ_ERR + 'AuthenticationFailed'
     BLUEZ_AUTH_REJECTED_ERR = BLUEZ_ERR + 'AuthenticationRejected'
     BLUEZ_AUTH_TIMEOUT_ERR = BLUEZ_ERR + 'AuthenticationTimeout'
+    BLUEZ_INVALID_VAL_LEN = BLUEZ_ERR + 'InvalidValueLength'
 
     BLUEZ_ERR_MSG_OAIP = 'Operation already in progress'
-    # BLUEZ_FAILED_ERROR_NO_ATT = 'No ATT transport'
+    BLUEZ_ERR_MSG_NO_ATT = 'No ATT transport'
     BLUEZ_ERR_MSG_NOT_CONNECTED = 'Not connected'
+    BLUEZ_ERR_MSG_FTIW = 'Failed to initiate write'
     # BLUEZ_DOES_NOT_EXIST_ERROR_DNE = 'Does Not Exist'
     BLUEZ_ERR_MSG_NO_DISCOV_STARTED = 'No discovery started'
+    BLUEZ_ERR_MSG_FTSRR = 'Failed to send read request'
     DBUS_NO_REPLY_ERR = 'org.freedesktop.DBus.Error.NoReply'
     DBUS_UNKNOWN_OBJ_ERR = 'org.freedesktop.DBus.Error.UnknownObject'
+
+    UNKNOWN_ERROR = 'Unknown error.'
 
     def __init__(self, error_name):
         super().__init__()
