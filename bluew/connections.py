@@ -96,9 +96,14 @@ class Connection:
         return self.engine.get_controllers()
 
     @close_on_error
-    def get_devices(self):
-        """Get available bluetooth devices."""
-        return self.engine.get_devices()
+    def get_services(self):
+        """Get available BLE services of a device."""
+        return self.engine.get_services(self.mac)
+
+    @close_on_error
+    def get_chrcs(self):
+        """Get available BLE characteristics of a device."""
+        return self.engine.get_chrcs(self.mac)
 
     @close_on_error
     def notify(self, attribute, handler):
@@ -110,7 +115,7 @@ class Connection:
         """Turn off notifications on attribute."""
         return self.engine.stop_notify(self.mac, attribute)
 
-    # @close_on_error
+    @close_on_error
     def remove(self):
         """Disconnect and unpair device."""
         return self.engine.remove(self.mac)

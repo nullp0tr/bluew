@@ -24,27 +24,27 @@ def mac_to_dev(func):
     return _wrapper
 
 
-def check_availablity(func):
+def check_if_available(func):
     """Check if bluetooth device is available before performing action."""
     @wraps(func)
     def _wrapper(self, dev, *args, **kwargs):
         # pylint: disable=W0212
         available = self._is_device_available(dev)
-        if not available:
-            raise DeviceNotAvailable(name=self.name, version=self.version)
-        return func(self, dev, *args, **kwargs)
+        if available:
+            return func(self, dev, *args, **kwargs)
+        raise DeviceNotAvailable(name=self.name, version=self.version)
     return _wrapper
 
 
-def check_if_paired(func):
+def check_if_not_paired(func):
     """Check if device is paired."""
     @wraps(func)
     def _wrapper(self, dev, *args, **kwargs):
         # pylint: disable=W0212
         paired = self._is_device_paired_timeout(dev, timeout=1)
-        if paired:
-            return True
-        return func(self, dev, *args, **kwargs)
+        if not paired:
+            return func(self, dev, *args, **kwargs)
+        return
     return _wrapper
 
 
@@ -54,7 +54,7 @@ def check_if_connected(func):
     def _wrapper(self, dev, *args, **kwargs):
         # pylint: disable=W0212
         connected = self._is_device_connected(dev)
-        if not connected:
-            return True
-        return func(self, dev, *args, **kwargs)
+        if connected:
+            return func(self, dev, *args, **kwargs)
+        return
     return _wrapper

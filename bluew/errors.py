@@ -16,6 +16,7 @@ class BluewError(Exception):
     DEVICE_NOT_AVAILABLE = 'Bluew can not find bluetooth device.'
     NO_CONTROLLERS = 'Bluew could not find any bluetooth controllers.'
     CONTROLLER_NOT_AVAILABLE = 'Bluew could not find the controller specified.'
+    COULD_NOT_PAIR = 'Bluew could not pair with device.'
 
     def __init__(self, reason, name='', version=''):
         super().__init__()
@@ -37,6 +38,16 @@ class DeviceNotAvailable(BluewError):
 
     def __init__(self, *args, **kwargs):
         super().__init__(BluewError.DEVICE_NOT_AVAILABLE, *args, **kwargs)
+
+
+class PairError(BluewError):
+    """
+    This error is raised by when the bluetooth devices specified
+    is not found.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(BluewError.COULD_NOT_PAIR, *args, **kwargs)
 
 
 class NoControllerAvailable(BluewError):

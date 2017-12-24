@@ -11,16 +11,21 @@ by the Requests HTTP library.
 """
 
 
-from .api import pair, info, trust
+from .api import connect, disconnect, remove
+from .api import pair, info, trust, distrust
 from .api import write_attribute, read_attribute
 from .api import Connection, get_devices
 from .devices import Device
 from .controllers import Controller
 from .errors import DeviceNotAvailable
 
-__all__ = ['pair',
+__all__ = ['connect',
+           'disconnect',
+           'pair',
+           'remove',
            'info',
            'trust',
+           'distrust',
            'write_attribute',
            'read_attribute',
            'Connection',

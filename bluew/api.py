@@ -10,6 +10,7 @@ Basic usage:
     >>> mac = 'xx:xx:xx:xx:xx'
     >>> attr = 'attrrr'
     >>> bluew.read_attribute(mac, attr)
+    [b'0', b'0']
 
 
 :copyright: (c) 2017 by Ahmed Alsharif.
@@ -17,73 +18,98 @@ Basic usage:
 """
 
 
+from typing import List
+
 from .connections import Connection
 from .plugables import UsedEngine
+from .devices import Device
 
 
-def get_devices():
+def get_devices() -> List[Device]:
     """Get list of devices around."""
 
-    # engine = UsedEngine()
-    # engine.start_engine()
-    # devices = engine.get_devices()
-    # engine.stop_engine()
     with UsedEngine() as engine:
         return engine.get_devices()
 
 
-def pair(mac, *args, **kwargs):
-    """Pair with a bluetooth device.
-
+def connect(mac: str) -> None:
+    """Connect to a bluetooth device.
     :param mac: MAC address of bluetooth device.
-    :return: bluew.Response.
     """
 
-    with Connection(mac, *args, **kwargs) as connection:
-        return connection.pair()
+    with UsedEngine() as engine:
+        return engine.connect(mac)
 
 
-def trust(mac):
+def disconnect(mac: str) -> None:
+    """Disconnect from a bluetooth device.
+    :param mac: MAC address of bluetooth device.
+    """
+
+    with UsedEngine() as engine:
+        return engine.disconnect(mac)
+
+
+def trust(mac: str) -> None:
     """Trust a bluetooth device.
-
     :param mac: MAC address of bluetooth device.
-    :return: bluew.Response.
     """
 
-    with Connection(mac) as connection:
-        return connection.trust()
+    with UsedEngine() as engine:
+        return engine.trust(mac)
 
 
-def write_attribute(mac, attribute, data):
-    """Write a bluetooth attribute on bluetooth device
+def distrust(mac: str) -> None:
+    """Distrust a bluetooth device.
+    :param mac: MAC address of bluetooth device.
+    """
 
+    with UsedEngine() as engine:
+        return engine.distrust(mac)
+
+
+def pair(mac: str) -> None:
+    """Pair with a bluetooth device.
+    :param mac: MAC address of bluetooth device.
+    """
+
+    with UsedEngine() as engine:
+        return engine.pair(mac)
+
+
+def remove(mac: str) -> None:
+    """Remove a bluetooth device.
+    :param mac: MAC address of bluetooth device.
+    """
+
+    with UsedEngine() as engine:
+        return engine.remove(mac)
+
+
+def write_attribute(mac: str, attribute: str, data: List[int]) -> None:
+    """Write a bluetooth attribute on bluetooth device.
     :param mac: MAC address of bluetooth device.
     :param attribute: Bluetooth attribute to write to.
     :param data: Data to write to attribute.
-    :return: bluew.Response.
     """
 
     with Connection(mac) as connection:
         return connection.write_attribute(attribute, data)
 
 
-def read_attribute(mac, attribute):
-    """Read a bluetooth attribute on bluetooth device
-
+def read_attribute(mac: str, attribute: str) -> List[bytes]:
+    """Read a bluetooth attribute on bluetooth device.
     :param mac: MAC address of bluetooth device.
     :param attribute: Bluetooth attribute to read.
-    :return: bluew.Response.
     """
 
     with Connection(mac) as connection:
         return connection.read_attribute(attribute)
 
 
-def info(mac):
+def info(mac: str) -> Device:
     """Get device info.
-
     :param mac: MAC address of bluetooth device.
-    :return: bluew.DataResponse.
     """
 
     with Connection(mac) as connection:

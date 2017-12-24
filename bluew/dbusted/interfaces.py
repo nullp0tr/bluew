@@ -49,6 +49,17 @@ DBUS_NO_REPLY_ERROR = 'org.freedesktop.DBus.Error.NoReply'
 DBUS_UNKNOWN_OBJ_ERROR = 'org.freedesktop.DBus.Error.UnknownObject'
 
 
+def get_exp_name_msg(exp: dbus.DBusException) -> Tuple[str, str]:
+    """Get name and message of DBusException."""
+    return exp.get_dbus_name(), exp.get_dbus_message()
+
+
+def error_is(exp: dbus.DBusException, string: str) -> bool:
+    """Check if error name or message is a specific string."""
+    name, msg = get_exp_name_msg(exp)
+    return name == string or msg == string
+
+
 class BluezAdapterInterface(object):
     """Bluez D-Bus Adapter interface."""
 
@@ -140,19 +151,18 @@ class BluezDeviceInterface(object):
         return True
 
     def _handle_connection_error(self, exp):
-        e_dbus_name = exp.get_dbus_name()
-        e_dbus_msg = exp.get_dbus_message()
-        bluez_failed = e_dbus_name == BLUEZ_FAILED_ERROR
-        bluez_oaip = e_dbus_msg == BLUEZ_FAILED_ERROR_OAIP
-        if bluez_failed and bluez_oaip:
-            self.disconnect_device()
-            self.connect_device()
-        elif e_dbus_name == BLUEZ_ALREADY_CONNECTED_ERROR:
+        if error_is(exp, BLUEZ_FAILED_ERROR_OAIP):
+            self._err_retry()
+        elif error_is(exp, BLUEZ_ALREADY_CONNECTED_ERROR):
             return True
-        elif e_dbus_name == DBUS_NO_REPLY_ERROR:
+        elif error_is(exp, DBUS_NO_REPLY_ERROR):
             return False
         else:
             raise exp
+
+    def _err_retry(self):
+        self.disconnect_device()
+        self.connect_device()
 
     def disconnect_device(self):
         # TODO : HANDLE FOLLOWING ERRORS

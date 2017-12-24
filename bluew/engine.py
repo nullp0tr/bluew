@@ -72,7 +72,7 @@ class EngineBluew(object):
 
         self._raise_not_implemented()
 
-    def connect(self, mac: str) -> bool:
+    def connect(self, mac: str) -> None:
         """
         This function get's called by Bluew API to connect to device.
         :param mac: MAC address of device.
@@ -82,7 +82,7 @@ class EngineBluew(object):
 
         self._raise_not_implemented()
 
-    def disconnect(self, mac: str) -> bool:
+    def disconnect(self, mac: str) -> None:
         """
         This function get's called by Bluew API to disconnect from a device.
         :param mac: MAC address of device.
@@ -92,7 +92,7 @@ class EngineBluew(object):
 
         self._raise_not_implemented()
 
-    def pair(self, mac: str) -> bool:
+    def pair(self, mac: str) -> None:
         """
         This function get's called by Bluew API to pair with a device.
         :param mac: MAC address of device.
@@ -102,7 +102,7 @@ class EngineBluew(object):
 
         self._raise_not_implemented()
 
-    def trust(self, mac: str) -> bool:
+    def trust(self, mac: str) -> None:
         """
         This function get's called by Bluew API to trust a device.
         :param mac: MAC address of device.
@@ -112,7 +112,7 @@ class EngineBluew(object):
 
         self._raise_not_implemented()
 
-    def untrust(self, mac: str) -> bool:
+    def distrust(self, mac: str) -> None:
         """
         This function get's called by Bluew API to remove trust
         from a device.
@@ -123,7 +123,8 @@ class EngineBluew(object):
 
         self._raise_not_implemented()
 
-    def write_attribute(self, mac: str, attribute: str, data: list) -> bool:
+    def write_attribute(self, mac: str, attribute: str,
+                        data: List[int]) -> None:
         """
         This function get's called by Bluew API to write an attribute
         on a device.
@@ -197,7 +198,7 @@ class EngineBluew(object):
 
         self._raise_not_implemented()
 
-    def notify(self, mac: str, attribute: str, handler: Callable) -> bool:
+    def notify(self, mac: str, attribute: str, handler: Callable) -> None:
         """
         This function get's called by Bluew API to stop notifying on a
         certain attribute.
@@ -211,7 +212,7 @@ class EngineBluew(object):
 
         self._raise_not_implemented()
 
-    def stop_notify(self, mac: str, attribute: str) -> bool:
+    def stop_notify(self, mac: str, attribute: str) -> None:
         """
         This function get's called by Bluew API to stop notifying on a
         certain attribute.

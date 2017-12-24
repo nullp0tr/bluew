@@ -10,16 +10,28 @@ This module provides tests for the Bluew API.
 """
 
 import bluew
-from bluew.plugables import UsedEngine
 from unittest import TestCase
 from testconfig import config
 from nose.plugins.attrib import attr
-from bluew.errors import DeviceNotAvailable
+from bluew.errors import DeviceNotAvailable, ControllerSpecifiedNotFound
 
 
 @attr('req_engine')
 class APITeststWithoutDev(TestCase):
     """Tests for the Bluew API without a device available"""
+
+    def test_connect(self):
+        """Test connect without device available."""
+
+        mac = 'xx:xx:xx:xx:xx'
+        self.assertRaises(DeviceNotAvailable,
+                          bluew.connect, mac=mac)
+
+    def test_disconnect(self):
+        """Test disconnect without device available."""
+
+        mac = 'xx:xx:xx:xx:xx'
+        bluew.disconnect(mac)
 
     def test_pair(self):
         """Test pair without device available."""
@@ -41,6 +53,13 @@ class APITeststWithoutDev(TestCase):
         mac = 'xx:xx:xx:xx:xx'
         self.assertRaises(DeviceNotAvailable,
                           bluew.trust, mac=mac)
+
+    def test_distrust(self):
+        """Test distrust without device available"""
+
+        mac = 'xx:xx:xx:xx:xx'
+        self.assertRaises(DeviceNotAvailable,
+                          bluew.distrust, mac=mac)
 
     def test_read_attribute(self):
         """Test read_attribute without device available"""
@@ -65,21 +84,40 @@ class APITeststWithoutDev(TestCase):
 class APITestsWithDev(TestCase):
     """Tests for the Bluew API with a device available"""
 
+    def test_connect_disconnect(self):
+        """Test connect & disconnect with device available."""
+
+        mac = config['dev']['testdev1']['mac']
+        bluew.connect(mac)
+        bluew.disconnect(mac)
+        bluew.remove(mac)
+
     def test_pair(self):
         """Test pair with device available."""
 
         mac = config['dev']['testdev1']['mac']
-        resp = bluew.pair(mac, keep_alive=True)
-        self.assertTrue(resp)
+        bluew.pair(mac)
         paired = bluew.info(mac).Paired
         self.assertTrue(paired)
+        bluew.remove(mac)
 
     def test_trust(self):
         """Test trust with device available."""
 
         mac = config['dev']['testdev1']['mac']
-        resp = bluew.trust(mac)
-        self.assertTrue(resp)
+        bluew.trust(mac)
+        trusted = bluew.info(mac).Trusted
+        self.assertTrue(trusted)
+        bluew.remove(mac)
+
+    def test_distrust(self):
+        """Test distrust with device available."""
+
+        mac = config['dev']['testdev1']['mac']
+        bluew.distrust(mac)
+        trusted = bluew.info(mac).Trusted
+        self.assertFalse(trusted)
+        bluew.remove(mac)
 
     def test_info(self):
         """Test info with device available."""
@@ -97,15 +135,24 @@ class APITestsWithDev(TestCase):
         attribute = config['dev']['testdev1']['correct_attribute']
         resp = bluew.read_attribute(mac, attribute)
         self.assertTrue(resp)
-        self.assertIsInstance(resp, list)
 
     def test_write_attribute(self):
         """Test write_attribute with device available."""
 
         mac = config['dev']['testdev1']['mac']
         attribute = config['dev']['testdev1']['correct_attribute']
-        resp = bluew.write_attribute(mac, attribute, [0x03, 0x01, 0x01])
-        self.assertTrue(resp)
+        bluew.write_attribute(mac, attribute, [0x03, 0x01, 0x01])
+
+    @attr('notify')
+    def test_notify(self):
+        """Test notify with device available."""
+
+        mac = config['dev']['testdev1']['mac']
+        n_attribute = config['dev']['testdev1']['notify_attribute']
+        con = bluew.Connection(mac)
+        con.notify(n_attribute, lambda data: True)
+        con.stop_notify(n_attribute)
+        con.close()
 
     def test_get_devices(self):
         """Test get_devices with device available."""
@@ -121,11 +168,13 @@ class APITestsWithDev(TestCase):
 @attr('req_dev')
 @attr('cnct')
 class ConnectionTestWithDev(TestCase):
+    """Test a Connection object with device available."""
 
     def test_connection(self):
         mac = config['dev']['testdev1']['mac']
         attribute = config['dev']['testdev1']['correct_attribute']
-        with bluew.Connection(mac) as connection:
+        cntrl = config['dev']['testcntrl']
+        with bluew.Connection(mac, cntrl=cntrl) as connection:
             connection.trust()
             connection.pair()
             connection.read_attribute(attribute)
@@ -134,3 +183,33 @@ class ConnectionTestWithDev(TestCase):
             attr = connection.read_attribute(attribute)
             data = [bytes([val]) for val in data]
             self.assertEqual(attr[:len(data)], data)
+
+    def test_conn_chrcs(self):
+        mac = config['dev']['testdev1']['mac']
+        attribute = config['dev']['testdev1']['correct_attribute']
+        with bluew.Connection(mac) as connection:
+            chrcs = connection.get_chrcs()
+            has_atr = bool(filter(lambda chrc: chrc.UUID == attribute, chrcs))
+            self.assertTrue(has_atr)
+
+    def test_conn_services(self):
+        mac = config['dev']['testdev1']['mac']
+        attribute = config['dev']['testdev1']['service_attribute']
+        with bluew.Connection(mac) as connection:
+            srvs = connection.get_services()
+            has_atr = bool(filter(lambda srv: srv.UUID == attribute, srvs))
+            self.assertTrue(has_atr)
+
+
+@attr('req_engine')
+@attr('cnct')
+class ConnectionTestWithWrongContrller(TestCase):
+    """Test a Connection with wrong controller."""
+
+    def test_connection(self):
+        mac = config['dev']['testdev1']['mac']
+        attribute = config['dev']['testdev1']['correct_attribute']
+        cntrl = 'hci666'
+        self.assertRaises(ControllerSpecifiedNotFound,
+                          bluew.Connection,
+                          mac, cntrl=cntrl)

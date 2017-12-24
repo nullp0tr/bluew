@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/nullp0tr/bluew.svg?branch=master)](https://travis-ci.org/nullp0tr/Bluew)
 [![codecov](https://codecov.io/gh/nullp0tr/bluew/branch/master/graph/badge.svg)](https://codecov.io/gh/nullp0tr/bluew)
-[![version](https://img.shields.io/badge/version-0.3.0-green.svg)](https://img.shields.io/badge/version-0.2.0-green.svg)
+[![version](https://img.shields.io/badge/version-0.3.1-green.svg)](https://img.shields.io/badge/version-0.2.0-green.svg)
 
 ```
                 ########  ##       ##     ## ######## ##      ##
@@ -37,21 +37,79 @@ With sudo:
 
 `sudo -H pip3 install git+https://github.com/nullp0tr/bluew.git`
 
-### API
-This is a list of the currently supported API calls:
-- pair
-- trust
-- untrust
-- info
-- read_attribute
-- write_attribute
-- notify
-- stop_notify
-- get_devices
-- get_controllers
+### Simple use:
+If you just wanna do something quickly 
+like connecting to a device, disconnecting, 
+trusting, reading an attribute from it, or writing to one, 
+you can do that in the following way.
+```python
+>>> import bluew
+```
+##### Pair:
+```python
+>>> mac = 'xx:xx:xx:xx:xx'
+>>> bluew.pair(mac)
+```
+##### Trust:
+```python
+>>> bluew.trust(mac)
+```
+##### Distrust:
+```python
+>>> bluew.distrust(mac)
+```
+##### Info:
+```python
+>>> dev = bluew.info(mac)
+>>> dev.Trusted
+True
+>>> dev.Paired
+True
+```
+##### Reading an attribute (service/characteristic):
+```python
+>>> uuid = 'someuuid'
+>>> bluew.read_attribute(mac, uuid)
+[b'x0', b'x0']
+```
+##### Writing an attribute:
+```python
+>>> bluew.write_attribute(mac, uuid, [0x3, 0x1, 0x1])
+>>> bluew.read_attribute(mac, uuid)
+[b'x03', b'x01', b'x01']
+```
+##### Scan and get devices around:
+```python
+>>> bluew.get_devices()
+```
+##### Get bluetooth controllers available:
+```python
+>>> bluew.get_controllers()
+```
+##### Remove device (distrust and unpair):
+```python
+>>> bluew.remove(mac)
+```
+
+### More advanced use:
+If you have a more advanced usage in mind than just pairing with 
+a device or reading an attribute quickly YOU SHOULD use bluew.Connection, 
+for example:
+```python
+>>> from bluew import Connection
+>>> mac = "xx:xx:xx:xx:xx"
+>>> with Connection(mac) as con:
+>>>     con.pair()
+>>>     con.write_attribute(attr1, data)
+>>>     con.notify(attr2, handler)
+```
+`bluew.Connection` supports all the functions already shown above and used 
+directly from bluew except for `get_devices()` and `get_controllers` and offers 
+even more functions like:
 - get_services
 - get_chrcs
-- remove
+- notify
+- stop_notify
 
 ### TODO for 0.4.0 release
 
