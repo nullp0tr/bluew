@@ -136,70 +136,82 @@ class BluezDeviceInterface(object):
         self.manager = dbus.Interface(bluez_obj, DEVICE_IFACE)
         self.prop_manager = dbus.Interface(bluez_obj, DBUS_PROP_IFACE)
 
-    def connect_device(self):
-        """Connect() method on org.bluez.Device1 Interface"""
+    def connect_device(self) -> None:
+        """Connect() method on org.bluez.Device1 Interface."""
 
         try:
             self.manager.Connect()
         except dbus.DBusException as exp:
             self._handle_connect_error(exp)
-        return True
 
     def _handle_connect_error(self, exp: dbus.DBusException) -> None:
         bzerr = BluezInterfaceError
         if error_is(exp, BLUEZ_FAILED_ERROR_OAIP):
             # ERROR: org.bluez.Error.Failed
+            # Here we only handle Error.Failed when the message
+            # says the the operation is already in progress.
             self._err_connect_retry()
 
         elif error_is(exp, bzerr.BLUEZ_IN_PROGRESS_ERR):
             # ERROR: org.bluez.Error.InProgress
+            # This is another OAIP error, but it get's thrown from
+            # a different function in bluez, and this time as a real
+            # Error.InProgress and not masked as Error.Failed.
             self._err_connect_retry()
 
         elif error_is(exp, bzerr.BLUEZ_ALREADY_CONNECTED_ERR):
             # ERROR: org.bluez.Error.AlreadyConnected
+            # Well if the device is already connected then just return;
+            # Objective achieved. Don't get suprised by segfaults if you
+            # call this a 100 times though.
             return
 
         elif error_is(exp, bzerr.BLUEZ_NOT_READY_ERR):
             # ERROR: org.bluez.Error.NotReady
+            # Not ready means that the bluetooth controller is either
+            # disabled or not ready for action.
             raise bzerr(bzerr.BLUEZ_NOT_READY_ERR)
 
         elif error_is(exp, bzerr.DBUS_NO_REPLY_ERR):
+            # ERROR: org.freedesktop.DBus.Error.NoReply
+            # The most likely reason for this error right now is the device
+            # not being available, so check for availability beforehand.
             raise bzerr(bzerr.DBUS_NO_REPLY_ERR)
 
         else:
             raise exp
 
-    def _err_connect_retry(self):
+    def _err_connect_retry(self) -> None:
         self.disconnect_device()
         self.connect_device()
 
-    def disconnect_device(self):
-        """Disconnect() method on org.bluez.Device1 Interface"""
+    def disconnect_device(self) -> None:
+        """Disconnect() method on org.bluez.Device1 Interface."""
 
         try:
             self.manager.Disconnect()
         except dbus.DBusException as exp:
             self._handle_disconnect_error(exp)
-        return
 
     @staticmethod
     def _handle_disconnect_error(exp: dbus.DBusException) -> None:
         bzerr = BluezInterfaceError
         if error_is(exp, bzerr.BLUEZ_ERR_MSG_NOT_CONNECTED):
             # ERROR: org.bluez.Error.Failed
+            # This error get's thrown when the device, we're trying to
+            # disconnect from is not even connected.
             return
         elif error_is(exp, bzerr.BLUEZ_NOT_CONNECTED_ERR):
             # ERROR: org.bluez.Error.NotConnected
+            # This error also get's thrown when the device we're trying
+            # to disconnect from is not available, different part that
+            # throws this in bluez -> different signature :scratchhead:.
             return
         else:
             raise exp
 
-    def pair_device(self):
-        # TODO : HANDLE FOLLOWING ERRORS
-        """Possible errors:
-        org.bluez.Error.AuthenticationFailed
-        org.bluez.Error.AuthenticationRejected
-        org.bluez.Error.AuthenticationTimeout"""
+    def pair_device(self) -> None:
+        """Pair() method on org.bluez.Device1 Interface."""
 
         self.manager.Pair(reply_handler=lambda *args, **kwargs: None,
                           error_handler=self._handle_pair_error)
@@ -240,6 +252,22 @@ class BluezDeviceInterface(object):
             # fails. Connect before pairing to avoid this on.
             raise bzerr(bzerr.BLUEZ_CONN_ATTEMPT_FAILED_ERR)
 
+        elif error_is(exp, bzerr.BLUEZ_AUTH_FAILED_ERR):
+            # ERROR: org.bluez.Error.AuthenticationFailed
+            # This is caused when the authentication with the device
+            # fails with no clear reason.
+            raise bzerr(bzerr.BLUEZ_AUTH_FAILED_ERR)
+
+        elif error_is(exp, bzerr.BLUEZ_AUTH_REJECTED_ERR):
+            # ERROR: org.bluez.Error.AuthenticationRejected.
+            # The device doesn't wanna authenticate, what can we do?
+            raise bzerr(bzerr.BLUEZ_AUTH_REJECTED_ERR)
+
+        elif error_is(exp, bzerr.BLUEZ_AUTH_TIMEOUT_ERR):
+            # ERROR: org.bluez.Error.AuthenticationTimeout.
+            # The authentication didn't succeed in time.
+            raise bzerr(bzerr.BLUEZ_AUTH_TIMEOUT_ERR)
+
         elif error_is(exp, bzerr.DBUS_NO_REPLY_ERR):
             # ERROR: org.freedesktop.DBus.Error.NoReply
             # D-Bus times out some times before bluez sends a reply
@@ -250,15 +278,13 @@ class BluezDeviceInterface(object):
         else:
             raise exp
 
-    def trust_device(self):
+    def trust_device(self) -> None:
         """Change Trusted property to True"""
         self.prop_manager.Set(DEVICE_IFACE, 'Trusted', True)
-        return True
 
-    def distrust_device(self):
+    def distrust_device(self) -> None:
         """Changed Trusted property to False"""
         self.prop_manager.Set(DEVICE_IFACE, 'Trusted', False)
-        return True
 
 
 class BluezGattCharInterface(object):
