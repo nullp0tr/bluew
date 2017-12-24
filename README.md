@@ -2,18 +2,8 @@
 [![codecov](https://codecov.io/gh/nullp0tr/bluew/branch/master/graph/badge.svg)](https://codecov.io/gh/nullp0tr/bluew)
 [![version](https://img.shields.io/badge/version-0.3.1-green.svg)](https://img.shields.io/badge/version-0.2.0-green.svg)
 
-```
-                ########  ##       ##     ## ######## ##      ##
-                ##     ## ##       ##     ## ##       ##  ##  ##
-  Bluetooth     ##     ## ##       ##     ## ##       ##  ##  ##
-  Made          ########  ##       ##     ## ######   ##  ##  ##
-  Simple.       ##     ## ##       ##     ## ##       ##  ##  ##
-                ##     ## ##       ##     ## ##       ##  ##  ##
-                ########  ########  #######  ########  ###  ###  
-```
+![logo](bluew_logo.png)
 
-
-# Bluew
 Bluetooth made simple.
 
 ### What's bluew?
