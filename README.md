@@ -27,6 +27,17 @@ With sudo:
 
 `sudo -H pip3 install git+https://github.com/nullp0tr/bluew.git`
 
+
+Unfortunately since DBusted (bluew's current backend) is using python-dbus, 
+you also need to install python-gi from your system package manager.
+##### Ubuntu:
+`sudo apt-get install python-gi`
+
+We're currently looking for more native alternatives.
+
+If you've managed to install bluew, congratulations, you passed the biggest 
+obstacle in using it. From now it should be a smooth ride.
+
 ### Simple use:
 If you just wanna do something quickly 
 like connecting to a device, disconnecting, 
