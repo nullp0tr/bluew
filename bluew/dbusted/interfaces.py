@@ -8,8 +8,9 @@ This module provides D-Bus interfaces provided by the bluez API.
 :copyright: (c) 2017 by Ahmed Alsharif.
 :license: MIT, see LICENSE for more details.
 """
+import logging
 
-from typing import Tuple, List  # pylint: disable=W0611
+from typing import Tuple, List, Callable  # pylint: disable=W0611
 from dbus.connection import SignalMatch  # pylint: disable=W0611
 
 import dbus
@@ -29,7 +30,6 @@ DBUS_PROP_IFACE = 'org.freedesktop.DBus.Properties'
 
 GATT_MANAGER_IFACE = 'org.bluez.GattManager1'
 GATT_SERVICE_IFACE = 'org.bluez.GattService1'
-GATT_CHRC_IFACE = 'org.bluez.GattCharacteristic1'
 GATT_DESC_IFACE = 'org.bluez.GattDescriptor1'
 
 ADAPTER_IFACE = 'org.bluez.Adapter1'
@@ -58,6 +58,21 @@ def error_is(exp: dbus.DBusException, string: str) -> bool:
     """Check if error name or message is a specific string."""
     name, msg = get_exp_name_msg(exp)
     return name == string or msg == string
+
+
+def pp_error(exp: dbus.DBusException) -> str:
+    """This returns a nicely formatted str of the error, for logging."""
+    name, msg = get_exp_name_msg(exp)
+    ret = "handling::{name}::with_message::{msg}".format(name=name, msg=msg)
+    return ret
+
+
+def log_iface_error(iface: str, exp: dbus.DBusException) -> None:
+    """This logs the errors handled."""
+    logger = logging.getLogger(__name__)
+    error = pp_error(exp)
+    record = 'DBusted::Interface:{}:'.format(iface) + error
+    logger.debug(record)
 
 
 class BluezAdapterInterface(object):
@@ -123,7 +138,7 @@ class BluezAdapterInterface(object):
         elif error_is(exp, bzerr.BLUEZ_NOT_AUTHORIZED_ERR):
             # ERROR: org.bluez.Error.NotAuthorized
             # From what I can tell from the bluez source code, this error
-            # doesn't get thrown from this method.
+            # doesn't get thrown from this method. But you never really know!
             raise bzerr(bzerr.BLUEZ_NOT_AUTHORIZED_ERR)
 
         else:
@@ -174,6 +189,7 @@ class BluezDeviceInterface(object):
                                    BLUEZ_SERVICE_PATH + self.cntrl + self.dev)
         self.manager = dbus.Interface(bluez_obj, DEVICE_IFACE)
         self.prop_manager = dbus.Interface(bluez_obj, DBUS_PROP_IFACE)
+        self.logger = logging.getLogger(__name__)
 
     def connect_device(self) -> None:
         """Connect() method on org.bluez.Device1 Interface."""
@@ -185,7 +201,7 @@ class BluezDeviceInterface(object):
 
     def _handle_connect_error(self, exp: dbus.DBusException) -> None:
         bzerr = BluezInterfaceError
-        if error_is(exp, BLUEZ_FAILED_ERROR_OAIP):
+        if error_is(exp, bzerr.BLUEZ_ERR_MSG_OAIP):
             # ERROR: org.bluez.Error.Failed
             # Here we only handle Error.Failed when the message
             # says the the operation is already in progress.
@@ -330,25 +346,26 @@ class BluezGattCharInterface(object):
     """Bluez D-Bus GattCharacteristic Interface"""
 
     __SIGNALS = []  # type: List[Tuple[SignalMatch, str]]
+    __IFACE = 'org.bluez.GattCharacteristic1'
 
     def __init__(self, bus, path):
         self.bus = bus
         bluez_obj = self.bus.get_object(BLUEZ_SERVICE_NAME, path)
-        self.manager = dbus.Interface(bluez_obj, GATT_CHRC_IFACE)
+        self.manager = dbus.Interface(bluez_obj, self.__IFACE)
         self.path = path
+        self.logger = logging.getLogger(__name__)
 
     def read_value(self) -> dbus.Array:
         """ReadValue() method on org.bluez.GattCharacteristic1 Interface."""
 
-        options = {'s': 's'}
         try:
-            return self.manager.ReadValue(options)
+            return self.manager.ReadValue({})
         except dbus.DBusException as exp:
             self._handle_read_value_error(exp)
 
-    @staticmethod
-    def _handle_read_value_error(exp: dbus.DBusException) -> None:
+    def _handle_read_value_error(self, exp: dbus.DBusException) -> None:
         bzerr = BluezInterfaceError
+        log_iface_error(self.__IFACE, exp)
         if error_is(exp, bzerr.BLUEZ_ERR_MSG_NOT_CONNECTED):
             # ERROR: org.bluez.Error.Failed
             # Bluez throws an Error.Failed with a 'Not connected' message,
@@ -359,9 +376,9 @@ class BluezGattCharInterface(object):
 
         elif error_is(exp, bzerr.BLUEZ_ERR_MSG_FTSRR):
             # ERROR: org.bluez.Error.Failed
-            # Bluez also throws an Error.Failed with a different the message,
-            # 'Failed to send read request'. The details of this can happen
-            # are wait too long for a comment.
+            # Bluez also throws an Error.Failed with a different message;
+            # 'Failed to send read request'. The details of how this can
+            # happen are wait too long for a comment.
             raise bzerr(bzerr.UNKNOWN_ERROR)
 
         elif error_is(exp, bzerr.BLUEZ_IN_PROGRESS_ERR):
@@ -395,15 +412,14 @@ class BluezGattCharInterface(object):
     def write_value(self, data: List[int]) -> None:
         """WriteValue() method on org.bluez.GattCharacteristic1 Interface."""
 
-        options = {'s': 's'}
         try:
-            self.manager.WriteValue(data, options)
+            self.manager.WriteValue(data, {})
         except dbus.DBusException as exp:
             self._handle_write_value_error(exp)
 
-    @staticmethod
-    def _handle_write_value_error(exp: dbus.DBusException) -> None:
+    def _handle_write_value_error(self, exp: dbus.DBusException) -> None:
         bzerr = BluezInterfaceError
+        log_iface_error(self.__IFACE, exp)
         if error_is(exp, bzerr.BLUEZ_ERR_MSG_NOT_CONNECTED):
             # ERROR: org.bluez.Error.Failed
             # Bluez throws an Error.Failed with a 'Not connected' message,
@@ -416,11 +432,11 @@ class BluezGattCharInterface(object):
             # ERROR: org.bluez.Error.Failed
             # Can be caused by a host of things, but can also be caused by
             # the device disappearing during write.
-            raise bzerr(bzerr.BLUEZ_NOT_AVAILABLE_ERR)
+            raise bzerr(bzerr.BLUEZ_NOT_CONNECTED_ERR)
 
         elif error_is(exp, bzerr.BLUEZ_ERR_MSG_FTIW):
             # ERROR: org.bluez.Error.Failed
-            # This one here happens i *THINK* when a wrong option flag
+            # This one here happens *I THINK* when a wrong option flag
             # is passed to WriteValue.
             raise bzerr(bzerr.BLUEZ_FAILED_ERR)
 
@@ -431,8 +447,8 @@ class BluezGattCharInterface(object):
 
         elif error_is(exp, bzerr.BLUEZ_NOT_PERMITTED_ERR):
             # ERROR: org.bluez.Error.NotPermitted
-            # This error get's thrown when you're trying to write an attribute
-            # you shouldn't be trying to READ!
+            # This error get's thrown when the READ is already acquired on
+            # this attribute by client (others??).
             raise bzerr(bzerr.BLUEZ_NOT_PERMITTED_ERR)
 
         elif error_is(exp, bzerr.BLUEZ_NOT_AUTHORIZED_ERR):
@@ -453,31 +469,100 @@ class BluezGattCharInterface(object):
             # long for the attribute.
             raise bzerr(bzerr.BLUEZ_INVALID_VAL_LEN)
 
-    def start_notify(self, handler):
-        # TODO: HANDLE FOLLOWING ERRORS
-        """Possible Errors:
-                            org.bluez.Error.Failed
-                            org.bluez.Error.NotPermitted
-                            org.bluez.Error.InProgress
-                            org.bluez.Error.NotSupported"""
+        else:
+            raise exp
 
-        sig = self.bus.add_signal_receiver(handler, path=self.path)
-        BluezGattCharInterface.__SIGNALS.append((sig, self.path))
-        return self.manager.StartNotify()
+    def start_notify(self, handler: Callable) -> None:
+        """StartNotify() method on org.bluez.GattCharacteristic1 Interface."""
 
-    def stop_notify(self):
-        # TODO: FIND POSSIBLE ERROS
-        """Possible erros: """
+        try:
+            self.manager.StartNotify()
+        except dbus.DBusException as exp:
+            self._handle_start_notify_error(exp)
+        else:
+            self._add_signal(handler)
 
+    def _add_signal(self, handler: Callable) -> None:
+        if not self._sig_already_registered():
+            sig = self.bus.add_signal_receiver(handler, path=self.path)
+            self.__SIGNALS.append((sig, self.path))
+
+    def _sig_already_registered(self) -> bool:
+        for _, path in self.__SIGNALS:
+            if path == self.path:
+                return True
+        return False
+
+    def _handle_start_notify_error(self, exp: dbus.DBusException) -> None:
+        bzerr = BluezInterfaceError
+        log_iface_error(self.__IFACE, exp)
+        if error_is(exp, bzerr.BLUEZ_ERR_MSG_FANS):
+            # ERROR: org.bluez.Error.Failed
+            # Error.Failed with message "Failed allocate notify session".
+            # This means a failure during allocating a notify session for
+            # our client. This error is the result of a d-bus error, like
+            # the message sender not being assigned.
+            raise bzerr(bzerr.DBUS_CONNECTION_ERROR)
+
+        elif error_is(exp, bzerr.BLUEZ_IN_PROGRESS_ERR):
+            # ERROR: org.bluez.Error.InProgress
+            # This is the result of trying to register another notification,
+            # when there's one already and the device is not connected.
+            raise bzerr(bzerr.BLUEZ_NOT_CONNECTED_ERR)
+
+        elif error_is(exp, bzerr.BLUEZ_ERR_MSG_FRNS):
+            # ERROR: org.bluez.Error.Failed
+            # Error.Failed with message "Failed to register notify session".
+            # This means that the device is not connected.
+            raise bzerr(bzerr.BLUEZ_NOT_CONNECTED_ERR)
+
+        elif error_is(exp, bzerr.BLUEZ_ERR_MSG_ALREADY_NOTIFYING):
+            # ERROR: org.bluez.Error.Failed
+            # This error means that we're already notifying on this specific
+            # attribute.
+            return
+
+        elif error_is(exp, bzerr.BLUEZ_NOT_PERMITTED_ERR):
+            # ERROR: org.bluez.Error.NotPermitted
+            # This error means that notify for this attribute is already
+            # acquired by this client (others??).
+            raise bzerr(bzerr.BLUEZ_NOT_PERMITTED_ERR)
+
+        elif error_is(exp, bzerr.BLUEZ_NOT_SUPPORTED_ERR):
+            # ERROR: org.bluez.Error.NotSupported
+            # This error means that the attribute doesn't support notifying.
+            raise bzerr(bzerr.BLUEZ_NOT_SUPPORTED_ERR)
+
+        else:
+            raise exp
+
+    def stop_notify(self) -> None:
+        """StopNotify() method on org.bluez.GattCharacteristic1 Interface."""
+
+        try:
+            self.manager.StopNotify()
+        except dbus.DBusException as exp:
+            self._handle_stop_notify_error(exp)
+        else:
+            self._remove_signal()
+
+    def _remove_signal(self) -> None:
         signals = []
-        for sig in BluezGattCharInterface.__SIGNALS:
-            if sig[1] == self.path:
-                sig[0].remove()
+        for signal, path in BluezGattCharInterface.__SIGNALS:
+            if path == self.path:
+                signal.remove()
             else:
-                signals.append(sig)
+                signals.append((signal, path))
         BluezGattCharInterface.__SIGNALS = signals
 
-        return self.manager.StopNotify()
+    def _handle_stop_notify_error(self, exp: dbus.DBusException) -> None:
+        bzerr = BluezInterfaceError
+        log_iface_error(self.__IFACE, exp)
+        if error_is(exp, bzerr.BLUEZ_ERR_MSG_NO_NOTIFY):
+            # ERROR: org.bluez.Error.Failed
+            # When we get this error with the message "No notify session
+            # started" we can just return as if the operation has succeeded.
+            return
 
 
 class BluezObjectInterface(object):
@@ -504,20 +589,20 @@ class BluezObjectInterface(object):
     def get_controllers(self):
         """THIS IS NOT AT THE CORRECT LEVEL OF ABSTRACTION."""
         objects = self._get_objects('org.bluez.Adapter1')
-        adapters = tuple(map(lambda object: Controller(**object), objects))
+        adapters = tuple(map(lambda obj: Controller(**obj), objects))
         return adapters
 
     def get_devices(self):
         """THIS IS NOT AT THE CORRECT LEVEL OF ABSTRACTION."""
         objects = self._get_objects('org.bluez.Device1')
-        devices = tuple(map(lambda object: Device(**object), objects))
+        devices = tuple(map(lambda obj: Device(**obj), objects))
         return devices
 
     def get_services(self, dev):
         """THIS IS NOT AT THE CORRECT LEVEL OF ABSTRACTION."""
         objects = self._get_objects('org.bluez.GattService1')
         objects = list(filter(lambda x: dev in x.get('Path', None), objects))
-        services = tuple(map(lambda object: BLEService(**object), objects))
+        services = tuple(map(lambda obj: BLEService(**obj), objects))
         return services
 
     def get_characteristics(self, dev):
@@ -532,24 +617,64 @@ class BluezObjectInterface(object):
 class BluezAgentManagerInterface(object):
     """Bluez AgentManager interface."""
 
+    __IFACE = 'org.bluez.AgentManager1'
+
     def __init__(self, bus):
         self.bus = bus
         bluez_obj = self.bus.get_object(BLUEZ_SERVICE_NAME, "/org/bluez")
-        self.manager = dbus.Interface(bluez_obj, 'org.bluez.AgentManager1')
+        self.manager = dbus.Interface(bluez_obj, self.__IFACE)
         self.agent_path = '/org/bluez/bluew'
         self.agent_cap = ''
 
-    def register_agent(self):
-        # TODO: FIND POSSIBLE ERRORS
-        """Possible errors: """
-        self.manager.RegisterAgent(self.agent_path, self.agent_cap)
-        return True
+    def register_agent(self) -> None:
+        """RegisterAgent() method on interface org.bluez.AgentManager1"""
 
-    def unregister_agent(self):
-        # TODO: FIND POSSIBLE ERRORS
-        """Possible errors: """
-        self.manager.UnregisterAgent(self.agent_path)
-        return True
+        try:
+            self.manager.RegisterAgent(self.agent_path, self.agent_cap)
+        except dbus.DBusException as exp:
+            self._handle_register_agent_error(exp)
+
+    def _handle_register_agent_error(self, exp: dbus.DBusException) -> None:
+        bzerr = BluezInterfaceError
+        log_iface_error(self.__IFACE, exp)
+        if error_is(exp, bzerr.BLUEZ_INVALID_ARGUMENTS_ERR):
+            # Error: org.bluez.Error.InvalidArguments
+            # This exception means you passed wrong capabilities, or a wrong
+            # path to RegisterAgent(), we'll just raise the same exception,
+            # since right now that's not configurable. and it would only
+            # get raised if we refactor this incorrectly, hence we should
+            # actually see the exception!!!
+            raise exp
+
+        elif error_is(exp, bzerr.BLUEZ_ALREADY_EXISTS_ERR):
+            # ERROR: org.bluez.Error.AlreadyExists"
+            # DBusted should take care of not trying to register more than one
+            # agent at a time, as soon as we want it to run from different
+            # interpreter instances at the same time, we should make the path
+            # dynamic. Once again raise to see it while refactoring.
+            raise exp
+
+        else:
+            raise exp
+
+    def unregister_agent(self) -> None:
+        """Possible errors: org.bluez.Error.DoesNotExist"""
+
+        try:
+            self.manager.UnregisterAgent(self.agent_path)
+        except dbus.DBusException as exp:
+            self._handle_unregister_agent_error(exp)
+
+    def _handle_unregister_agent_error(self, exp: dbus.DBusException) -> None:
+        bzerr = BluezInterfaceError
+        log_iface_error(self.__IFACE, exp)
+        if error_is(exp, bzerr.BLUEZ_DOES_NOT_EXIST_ERR):
+            # ERROR: org.bluez.Error.DoesNotExist
+            # The agent we're trying to unregister doesn't exist, this should
+            # not be caused, if caused, we just raise again cause it signals
+            # a bug in DBusted, since it tried to unregister an agent, that
+            # is not registered.
+            raise exp
 
 
 class BluezHealthManagerInterface(object):
@@ -609,13 +734,18 @@ class BluezInterfaceError(Exception):
     BLUEZ_ERR_MSG_NO_ATT = 'No ATT transport'
     BLUEZ_ERR_MSG_NOT_CONNECTED = 'Not connected'
     BLUEZ_ERR_MSG_FTIW = 'Failed to initiate write'
+    BLUEZ_ERR_MSG_FANS = 'Failed allocate notify session'
+    BLUEZ_ERR_MSG_FRNS = 'Failed to register notify session'
+    BLUEZ_ERR_MSG_ALREADY_NOTIFYING = 'Already notifying'
+    BLUEZ_ERR_MSG_NO_NOTIFY = 'No notify session started'
     # BLUEZ_DOES_NOT_EXIST_ERROR_DNE = 'Does Not Exist'
     BLUEZ_ERR_MSG_NO_DISCOV_STARTED = 'No discovery started'
     BLUEZ_ERR_MSG_FTSRR = 'Failed to send read request'
     DBUS_NO_REPLY_ERR = 'org.freedesktop.DBus.Error.NoReply'
     DBUS_UNKNOWN_OBJ_ERR = 'org.freedesktop.DBus.Error.UnknownObject'
 
-    UNKNOWN_ERROR = 'Unknown error.'
+    UNKNOWN_ERROR = 'UnknownError.'
+    DBUS_CONNECTION_ERROR = 'DBusConnectionError'
 
     def __init__(self, error_name):
         super().__init__()

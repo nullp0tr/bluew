@@ -10,6 +10,7 @@ using the bluez D-Bus API.
 :license: MIT, see LICENSE for more details.
 """
 
+import logging
 
 import threading
 import time
@@ -68,13 +69,14 @@ class DBusted(EngineBluew):
 
     def __init__(self, *args, **kwargs):
         name = "DBusted"
-        version = "0.3.4.5"
+        version = "0.3.6"
         kwargs['name'] = name
         kwargs['version'] = version
         super().__init__(*args, **kwargs)
         self.cntrl = kwargs.get('cntrl', None)
         self._bus = DBusted.__bus
         self._init_cntrl()
+        self.logger = logging.getLogger(__name__)
 
     def __enter__(self):
         self.start_engine()
@@ -225,7 +227,7 @@ class DBusted(EngineBluew):
 
         self._start_scan()
         boiface = BluezObjectInterface(self._bus)
-        devices = self._timeout(boiface.get_devices, 8)()
+        devices = self._timeout(boiface.get_devices, 10)()
         self._stop_scan()
         return devices
 

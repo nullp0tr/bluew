@@ -6,7 +6,7 @@
 dev:
   testcntrl: 'hci0'
   testdev1:
-    mac: "F9:3E:74:7D:3C:45"
+    mac: "D4:D4:76:6D:97:63"
     # just a none existing attribute
     false_attribute: "mehhhheeem"
     # this attribute has to be readable and writeable
