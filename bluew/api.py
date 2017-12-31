@@ -25,92 +25,93 @@ from .plugables import UsedEngine
 from .devices import Device
 
 
-def get_devices() -> List[Device]:
+def get_devices(*args, **kwargs) -> List[Device]:
     """Get list of devices around."""
 
-    with UsedEngine() as engine:
+    with UsedEngine(*args, **kwargs) as engine:
         return engine.get_devices()
 
 
-def connect(mac: str) -> None:
+def connect(mac: str, *args, **kwargs) -> None:
     """Connect to a bluetooth device.
     :param mac: MAC address of bluetooth device.
     """
 
-    with UsedEngine() as engine:
+    with UsedEngine(*args, **kwargs) as engine:
         return engine.connect(mac)
 
 
-def disconnect(mac: str) -> None:
+def disconnect(mac: str, *args, **kwargs) -> None:
     """Disconnect from a bluetooth device.
     :param mac: MAC address of bluetooth device.
     """
 
-    with UsedEngine() as engine:
+    with UsedEngine(*args, **kwargs) as engine:
         return engine.disconnect(mac)
 
 
-def trust(mac: str) -> None:
+def trust(mac: str, *args, **kwargs) -> None:
     """Trust a bluetooth device.
     :param mac: MAC address of bluetooth device.
     """
 
-    with UsedEngine() as engine:
+    with UsedEngine(*args, **kwargs) as engine:
         return engine.trust(mac)
 
 
-def distrust(mac: str) -> None:
+def distrust(mac: str, *args, **kwargs) -> None:
     """Distrust a bluetooth device.
     :param mac: MAC address of bluetooth device.
     """
 
-    with UsedEngine() as engine:
+    with UsedEngine(*args, **kwargs) as engine:
         return engine.distrust(mac)
 
 
-def pair(mac: str) -> None:
+def pair(mac: str, *args, **kwargs) -> None:
     """Pair with a bluetooth device.
     :param mac: MAC address of bluetooth device.
     """
 
-    with UsedEngine() as engine:
+    with UsedEngine(*args, **kwargs) as engine:
         return engine.pair(mac)
 
 
-def remove(mac: str) -> None:
+def remove(mac: str, *args, **kwargs) -> None:
     """Remove a bluetooth device.
     :param mac: MAC address of bluetooth device.
     """
 
-    with UsedEngine() as engine:
+    with UsedEngine(*args, **kwargs) as engine:
         return engine.remove(mac)
 
 
-def write_attribute(mac: str, attribute: str, data: List[int]) -> None:
+def write_attribute(mac: str, attribute: str, data: List[int],
+                    *args, **kwargs) -> None:
     """Write a bluetooth attribute on bluetooth device.
     :param mac: MAC address of bluetooth device.
     :param attribute: Bluetooth attribute to write to.
     :param data: Data to write to attribute.
     """
 
-    with Connection(mac) as connection:
+    with Connection(mac, *args, **kwargs) as connection:
         return connection.write_attribute(attribute, data)
 
 
-def read_attribute(mac: str, attribute: str) -> List[bytes]:
+def read_attribute(mac: str, attribute: str, *args, **kwargs) -> List[bytes]:
     """Read a bluetooth attribute on bluetooth device.
     :param mac: MAC address of bluetooth device.
     :param attribute: Bluetooth attribute to read.
     """
 
-    with Connection(mac) as connection:
+    with Connection(mac, *args, **kwargs) as connection:
         return connection.read_attribute(attribute)
 
 
-def info(mac: str) -> Device:
+def info(mac: str, *args, **kwargs) -> Device:
     """Get device info.
     :param mac: MAC address of bluetooth device.
     """
 
-    with Connection(mac) as connection:
+    with Connection(mac, *args, **kwargs) as connection:
         return connection.info()

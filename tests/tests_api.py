@@ -25,41 +25,41 @@ class APITeststWithoutDev(TestCase):
 
         mac = 'xx:xx:xx:xx:xx'
         self.assertRaises(DeviceNotAvailable,
-                          bluew.connect, mac=mac)
+                          bluew.connect, mac=mac, timeout=0)
 
     def test_disconnect(self):
         """Test disconnect without device available."""
 
         mac = 'xx:xx:xx:xx:xx'
-        bluew.disconnect(mac)
+        bluew.disconnect(mac, timeout=0)
 
     def test_pair(self):
         """Test pair without device available."""
 
         mac = 'xx:xx:xx:xx:xx'
         self.assertRaises(DeviceNotAvailable,
-                          bluew.pair, mac=mac)
+                          bluew.pair, mac=mac, timeout=0)
 
     def test_info(self):
         """Test info without device available"""
 
         mac = 'xx:xx:xx:xx:xx'
         self.assertRaises(DeviceNotAvailable,
-                          bluew.info, mac=mac)
+                          bluew.info, mac=mac, timeout=0)
 
     def test_trust(self):
         """Test trust without device available"""
 
         mac = 'xx:xx:xx:xx:xx'
         self.assertRaises(DeviceNotAvailable,
-                          bluew.trust, mac=mac)
+                          bluew.trust, mac=mac, timeout=0)
 
     def test_distrust(self):
         """Test distrust without device available"""
 
         mac = 'xx:xx:xx:xx:xx'
         self.assertRaises(DeviceNotAvailable,
-                          bluew.distrust, mac=mac)
+                          bluew.distrust, mac=mac, timeout=0)
 
     def test_read_attribute(self):
         """Test read_attribute without device available"""
@@ -67,7 +67,7 @@ class APITeststWithoutDev(TestCase):
         mac = 'xx:xx:xx:xx:xx'
         self.assertRaises(DeviceNotAvailable,
                           bluew.read_attribute,
-                          mac=mac, attribute='x')
+                          mac=mac, attribute='x', timeout=0)
 
     def test_write_attribute(self):
         """Test write_attribute without device available"""
@@ -76,7 +76,7 @@ class APITeststWithoutDev(TestCase):
         self.assertRaises(DeviceNotAvailable,
                           bluew.write_attribute,
                           mac=mac, attribute='x',
-                          data='0x00')
+                          data='0x00', timeout=0)
 
 
 @attr('req_engine')
@@ -177,28 +177,34 @@ class ConnectionTestWithDev(TestCase):
         with bluew.Connection(mac, cntrl=cntrl) as connection:
             connection.trust()
             connection.pair()
+            chrcs = connection.get_chrcs()
+            has_atr = bool(filter(lambda chrc: chrc.UUID == attribute, chrcs))
+            self.assertTrue(has_atr)
+            srvs = connection.get_services()
+            has_atr = bool(filter(lambda srv: srv.UUID == attribute, srvs))
+            self.assertTrue(has_atr)
             connection.read_attribute(attribute)
             data = [0x03, 0x01, 0x01]
             connection.write_attribute(attribute, data)
             attr = connection.read_attribute(attribute)
             data = [bytes([val]) for val in data]
             self.assertEqual(attr[:len(data)], data)
-
-    def test_conn_chrcs(self):
-        mac = config['dev']['testdev1']['mac']
-        attribute = config['dev']['testdev1']['correct_attribute']
-        with bluew.Connection(mac) as connection:
-            chrcs = connection.get_chrcs()
-            has_atr = bool(filter(lambda chrc: chrc.UUID == attribute, chrcs))
-            self.assertTrue(has_atr)
-
-    def test_conn_services(self):
-        mac = config['dev']['testdev1']['mac']
-        attribute = config['dev']['testdev1']['service_attribute']
-        with bluew.Connection(mac) as connection:
-            srvs = connection.get_services()
-            has_atr = bool(filter(lambda srv: srv.UUID == attribute, srvs))
-            self.assertTrue(has_atr)
+    #
+    # def test_conn_chrcs(self):
+    #     mac = config['dev']['testdev1']['mac']
+    #     attribute = config['dev']['testdev1']['correct_attribute']
+    #     with bluew.Connection(mac) as connection:
+    #         chrcs = connection.get_chrcs()
+    #         has_atr = bool(filter(lambda chrc: chrc.UUID == attribute, chrcs))
+    #         self.assertTrue(has_atr)
+    #
+    # def test_conn_services(self):
+    #     mac = config['dev']['testdev1']['mac']
+    #     attribute = config['dev']['testdev1']['service_attribute']
+    #     with bluew.Connection(mac) as connection:
+    #         srvs = connection.get_services()
+    #         has_atr = bool(filter(lambda srv: srv.UUID == attribute, srvs))
+    #         self.assertTrue(has_atr)
 
 
 @attr('req_engine')

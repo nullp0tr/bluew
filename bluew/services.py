@@ -18,5 +18,5 @@ class BLEService(PPObj):
     """BLE service object."""
 
     def __init__(self, **kwargs):
-        attrs = {'Primary', 'Device', 'UUID', 'Path'}
+        attrs = {'Primary', 'Device', 'UUID', 'Path', 'Includes'}
         super().__init__(attrs, **kwargs)

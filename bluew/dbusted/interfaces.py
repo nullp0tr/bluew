@@ -269,7 +269,7 @@ class BluezDeviceInterface(object):
         """Pair() method on org.bluez.Device1 Interface."""
 
         self.manager.Pair(reply_handler=lambda *args, **kwargs: None,
-                          error_handler=self._handle_pair_error)
+                          error_handler=lambda *args: None)
 
     @staticmethod
     def _handle_pair_error(exp: dbus.DBusException) -> None:

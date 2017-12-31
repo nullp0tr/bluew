@@ -33,7 +33,8 @@ from bluew.dbusted.interfaces import (BluezGattCharInterface,
 
 from bluew.errors import (NoControllerAvailable,
                           ControllerSpecifiedNotFound,
-                          PairError)
+                          PairError,
+                          DeviceNotAvailable)
 
 from bluew.engine import EngineBluew
 
@@ -74,6 +75,7 @@ class DBusted(EngineBluew):
         kwargs['version'] = version
         super().__init__(*args, **kwargs)
         self.cntrl = kwargs.get('cntrl', None)
+        self.timeout = kwargs.get('timeout', 3)
         self._bus = DBusted.__bus
         self._init_cntrl()
         self.logger = logging.getLogger(__name__)
@@ -195,10 +197,9 @@ class DBusted(EngineBluew):
         deviface.pair_device()
         paired = self._is_device_paired_timeout(mac)
         if not paired:
-            raise PairError()
+            raise PairError(self.name, self.version)
 
     @mac_to_dev
-    # @check_availablity
     def remove(self, mac: str) -> None:
         """
         Overriding EngineBluew's remove method.
@@ -209,6 +210,12 @@ class DBusted(EngineBluew):
 
         adiface = BluezAdapterInterface(self._bus, self.cntrl)
         adiface.remove_device(mac)
+
+    def remove_all(self) -> None:
+        """Remove all devices."""
+        devices = self._get_devices()
+        for dev in devices:
+            self.remove(getattr(dev, 'Address'))
 
     def get_controllers(self) -> List[Controller]:
         """
@@ -225,10 +232,18 @@ class DBusted(EngineBluew):
         :return: List of devices available.
         """
 
+        self.remove_all()
         self._start_scan()
-        boiface = BluezObjectInterface(self._bus)
-        devices = self._timeout(boiface.get_devices, 10)()
+        get_devices = self._tout(self._get_devices,
+                                 self.timeout,
+                                 lambda x: False)
+        devices = get_devices()
         self._stop_scan()
+        return devices
+
+    def _get_devices(self) -> List[Device]:
+        boiface = BluezObjectInterface(self._bus)
+        devices = boiface.get_devices()
         return devices
 
     @mac_to_dev
@@ -265,7 +280,7 @@ class DBusted(EngineBluew):
         :return: Device object.
         """
 
-        devices = self.get_devices()
+        devices = self._get_devices()
         device = list(filter(lambda x: mac in x.Path, devices))[0]
         return device
 
@@ -369,22 +384,39 @@ class DBusted(EngineBluew):
         gattchrciface.stop_notify()
 
     def _is_device_available(self, dev):
-        devices = self.get_devices()
+        self._start_scan()
+        devices = self._tout(self._get_devices,
+                             self.timeout,
+                             lambda devs: any(dev in d.Path for d in devs))
+        devices = devices()
         filtered = list(filter(lambda device: dev in device.Path, devices))
+        self._stop_scan()
         return bool(filtered)
 
     def _is_device_paired(self, dev):
-        devices = self.get_devices()
+
+        def _dev_is_paired(devs):
+            for _dev in devs:
+                if dev in _dev.Path and _dev.Paired:
+                    return True
+            return False
+
+        devices = self._tout(self._get_devices,
+                             self.timeout,
+                             _dev_is_paired)()
         filtered = list(filter(lambda device: dev in device.Path, devices))
         filtered = list(filter(lambda device: device.Paired, filtered))
         return bool(filtered)
 
-    def _is_device_paired_timeout(self, dev, timeout=5):
-        paired = self._timeout(self._is_device_paired, timeout)(dev)
+    def _is_device_paired_timeout(self, dev):
+        paired = self._is_device_paired(dev)
         return paired
 
     def _is_device_connected(self, dev):
-        devices = self.get_devices()
+        devices = self._tout(self._get_devices,
+                             self.timeout,
+                             lambda devs: any(dev in d.Path for d in devs))
+        devices = devices()
         filtered = list(filter(lambda device: dev in device.Path, devices))
         filtered = list(filter(lambda device: device.Connected, filtered))
         return bool(filtered)
@@ -398,8 +430,11 @@ class DBusted(EngineBluew):
             path = ''
         return path
 
-    def _uuid_to_path(self, uuid, dev, timeout=10):
-        return self._timeout(self._get_attr_path, timeout)(uuid, dev)
+    def _uuid_to_path(self, uuid, dev):
+        path = self._timeout(self._get_attr_path, self.timeout)(uuid, dev)
+        if not path:
+            raise DeviceNotAvailable(self.name, self.version)
+        return path
 
     @staticmethod
     def _handle_notification(func):
@@ -421,4 +456,18 @@ class DBusted(EngineBluew):
                 result = func(*args, **kwargs)
                 current_time = time.time()
             return result
+        return _wrapper
+
+    @staticmethod
+    def _tout(func, timeout, case):
+        def _wrapper(*args, **kwargs):
+            is_case = False
+            timedout = False
+            ret = None
+            start_time = time.time()
+            while not timedout and not is_case:
+                ret = func(*args, **kwargs)
+                is_case = case(ret)
+                timedout = time.time() > start_time + timeout
+            return ret
         return _wrapper

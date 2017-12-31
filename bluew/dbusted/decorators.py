@@ -41,7 +41,7 @@ def check_if_not_paired(func):
     @wraps(func)
     def _wrapper(self, dev, *args, **kwargs):
         # pylint: disable=W0212
-        paired = self._is_device_paired_timeout(dev, timeout=1)
+        paired = self._is_device_paired_timeout(dev)
         if not paired:
             return func(self, dev, *args, **kwargs)
         return
