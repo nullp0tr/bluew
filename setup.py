@@ -14,7 +14,7 @@ setup(
     author='Ahmed Alsharif (nullp0tr)',
     author_email='ahmed@shnaboo.com',
     license='MIT',
-    packages=['bluew'],
+    packages=['bluew', 'bluew/dbusted'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
@@ -30,5 +30,5 @@ setup(
     ],
 
     keywords='bluetooth bluez bluetoothctl wrapper',
-    install_requires=[]
+    install_requires=['dbus-python', 'vext.gi', ]
 )
