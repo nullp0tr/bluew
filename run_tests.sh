@@ -1,3 +1,4 @@
+#!/bin/bash
 succ="\x1b[0;32;1mSuccess!\x1b[0;31;0m\n"
 fail="\x1b[0;31;1mFAILED!\x1b[0;31;0m\n"
 printf "flake8: "

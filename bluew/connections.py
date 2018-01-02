@@ -48,7 +48,7 @@ class Connection:
     """
 
     def __init__(self, mac, *args, **kwargs):
-        self.keep_alive = kwargs.get('keep_alive', False)
+        self.keep_alive = kwargs.get('keep_alive', True)
         self.engine = UsedEngine(*args, **kwargs)
         self.mac = mac
         self._connect()

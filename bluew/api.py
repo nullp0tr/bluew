@@ -113,5 +113,5 @@ def info(mac: str, *args, **kwargs) -> Device:
     :param mac: MAC address of bluetooth device.
     """
 
-    with Connection(mac, *args, **kwargs) as connection:
-        return connection.info()
+    with UsedEngine(*args, **kwargs) as engine:
+        return engine.info(mac)

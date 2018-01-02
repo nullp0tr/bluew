@@ -18,5 +18,6 @@ class BLECharacteristic(PPObj):
     """BLE Characteristic."""
 
     def __init__(self, **kwargs):
-        attrs = {'Value', 'Flags', 'Notifying', 'Service', 'UUID', 'Path'}
+        attrs = {'Value', 'Flags', 'Notifying',
+                 'Service', 'UUID', 'Path', 'NotifyAcquired'}
         super().__init__(attrs, **kwargs)

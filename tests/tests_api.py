@@ -90,7 +90,6 @@ class APITestsWithDev(TestCase):
         mac = config['dev']['testdev1']['mac']
         bluew.connect(mac)
         bluew.disconnect(mac)
-        bluew.remove(mac)
 
     def test_pair(self):
         """Test pair with device available."""
@@ -99,7 +98,6 @@ class APITestsWithDev(TestCase):
         bluew.pair(mac)
         paired = bluew.info(mac).Paired
         self.assertTrue(paired)
-        bluew.remove(mac)
 
     def test_trust(self):
         """Test trust with device available."""
@@ -108,7 +106,6 @@ class APITestsWithDev(TestCase):
         bluew.trust(mac)
         trusted = bluew.info(mac).Trusted
         self.assertTrue(trusted)
-        bluew.remove(mac)
 
     def test_distrust(self):
         """Test distrust with device available."""
@@ -117,7 +114,6 @@ class APITestsWithDev(TestCase):
         bluew.distrust(mac)
         trusted = bluew.info(mac).Trusted
         self.assertFalse(trusted)
-        bluew.remove(mac)
 
     def test_info(self):
         """Test info with device available."""
@@ -159,6 +155,7 @@ class APITestsWithDev(TestCase):
 
         mac = config['dev']['testdev1']['mac']
         devices = bluew.get_devices()
+        self.assertTrue(devices)
         has_device = (mac == dev.Address for dev in devices)
         has_device = list(filter(lambda x: x is True, has_device))
         self.assertTrue(has_device)

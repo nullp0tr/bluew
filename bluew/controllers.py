@@ -21,5 +21,5 @@ class Controller(PPObj):
         attrs = {'Alias', 'Powered', 'UUIDs', 'Address',
                  'DiscoverableTimeout', 'Pairable', 'Discoverable',
                  'Class', 'Modalias', 'PairableTimeout', 'Discovering',
-                 'Name', 'Path'}
+                 'Name', 'Path', 'AddressType'}
         super().__init__(attrs, **kwargs)

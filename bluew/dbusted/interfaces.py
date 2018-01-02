@@ -231,7 +231,7 @@ class BluezDeviceInterface(object):
             # ERROR: org.freedesktop.DBus.Error.NoReply
             # The most likely reason for this error right now is the device
             # not being available, so check for availability beforehand.
-            raise bzerr(bzerr.DBUS_NO_REPLY_ERR)
+            raise bzerr(bzerr.UNKNOWN_ERROR)
 
         else:
             raise exp
@@ -278,7 +278,8 @@ class BluezDeviceInterface(object):
             # ERROR: org.bluez.Error.AuthenticationCanceled
             # Since we haven't implemented CancelPairing, the only logical
             # cause for this error is the device disappearing amidst pairing.
-            raise bzerr(bzerr.BLUEZ_AUTH_CANCELLED_ERR)
+            # we'll throw not connected error.
+            raise bzerr(bzerr.BLUEZ_NOT_CONNECTED_ERR)
 
         elif error_is(exp, bzerr.BLUEZ_ALREADY_EXISTS_ERR):
             # ERROR: org.bluez.Error.AlreadyExists
@@ -304,8 +305,10 @@ class BluezDeviceInterface(object):
         elif error_is(exp, bzerr.BLUEZ_CONN_ATTEMPT_FAILED_ERR):
             # ERROR: org.bluez.Error.ConnectionAttemptFailed
             # This is caused when the connection attempt before pairing
-            # fails. Connect before pairing to avoid this one.
-            raise bzerr(bzerr.BLUEZ_CONN_ATTEMPT_FAILED_ERR)
+            # fails. Connect before pairing to avoid this one. We'll throw
+            # not connected error instead, so that you can try connecting,
+            # and find the problem with it.
+            raise bzerr(bzerr.BLUEZ_NOT_CONNECTED_ERR)
 
         elif error_is(exp, bzerr.BLUEZ_AUTH_FAILED_ERR):
             # ERROR: org.bluez.Error.AuthenticationFailed
@@ -388,6 +391,13 @@ class BluezGattCharInterface(object):
             # instead.
             raise bzerr(bzerr.BLUEZ_IN_PROGRESS_ERR)
 
+        elif error_is(exp, bzerr.BLUEZ_ERR_MSG_NOT_PAIRED):
+            # ERROR: org.bluez.Error.NotPermitted
+            # This is NotPermitted error comes with the message, 'Not paired'
+            # which means that you need authentication to read/write the
+            # specified attribute.
+            raise bzerr(bzerr.NOT_PAIRED)
+
         elif error_is(exp, bzerr.BLUEZ_NOT_PERMITTED_ERR):
             # ERROR: org.bluez.Error.NotPermitted
             # This error get's thrown when you're trying to read an attribute
@@ -445,9 +455,16 @@ class BluezGattCharInterface(object):
             # You shouldn't be writing again during a write operation.
             raise bzerr(bzerr.BLUEZ_IN_PROGRESS_ERR)
 
+        elif error_is(exp, bzerr.BLUEZ_ERR_MSG_NOT_PAIRED):
+            # ERROR: org.bluez.Error.NotPermitted
+            # This is NotPermitted error comes with the message, 'Not paired'
+            # which means that you need authentication to read/write the
+            # specified attribute.
+            raise bzerr(bzerr.NOT_PAIRED)
+
         elif error_is(exp, bzerr.BLUEZ_NOT_PERMITTED_ERR):
             # ERROR: org.bluez.Error.NotPermitted
-            # This error get's thrown when the READ is already acquired on
+            # This error get's thrown when the fd is already acquired on
             # this attribute by client (others??).
             raise bzerr(bzerr.BLUEZ_NOT_PERMITTED_ERR)
 
@@ -502,7 +519,7 @@ class BluezGattCharInterface(object):
             # This means a failure during allocating a notify session for
             # our client. This error is the result of a d-bus error, like
             # the message sender not being assigned.
-            raise bzerr(bzerr.DBUS_CONNECTION_ERROR)
+            raise bzerr(bzerr.UNKNOWN_ERROR)
 
         elif error_is(exp, bzerr.BLUEZ_IN_PROGRESS_ERR):
             # ERROR: org.bluez.Error.InProgress
@@ -731,6 +748,7 @@ class BluezInterfaceError(Exception):
     BLUEZ_INVALID_VAL_LEN = BLUEZ_ERR + 'InvalidValueLength'
 
     BLUEZ_ERR_MSG_OAIP = 'Operation already in progress'
+    BLUEZ_ERR_MSG_NOT_PAIRED = 'Not paired'
     BLUEZ_ERR_MSG_NO_ATT = 'No ATT transport'
     BLUEZ_ERR_MSG_NOT_CONNECTED = 'Not connected'
     BLUEZ_ERR_MSG_FTIW = 'Failed to initiate write'
@@ -738,14 +756,15 @@ class BluezInterfaceError(Exception):
     BLUEZ_ERR_MSG_FRNS = 'Failed to register notify session'
     BLUEZ_ERR_MSG_ALREADY_NOTIFYING = 'Already notifying'
     BLUEZ_ERR_MSG_NO_NOTIFY = 'No notify session started'
-    # BLUEZ_DOES_NOT_EXIST_ERROR_DNE = 'Does Not Exist'
     BLUEZ_ERR_MSG_NO_DISCOV_STARTED = 'No discovery started'
     BLUEZ_ERR_MSG_FTSRR = 'Failed to send read request'
+
     DBUS_NO_REPLY_ERR = 'org.freedesktop.DBus.Error.NoReply'
     DBUS_UNKNOWN_OBJ_ERR = 'org.freedesktop.DBus.Error.UnknownObject'
 
     UNKNOWN_ERROR = 'UnknownError.'
     DBUS_CONNECTION_ERROR = 'DBusConnectionError'
+    NOT_PAIRED = 'NotPaired'
 
     def __init__(self, error_name):
         super().__init__()

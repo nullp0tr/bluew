@@ -20,6 +20,7 @@ from typing import List, Optional, Callable  # pylint: disable=W0611
 from dbus.mainloop.glib import DBusGMainLoop
 import dbus
 
+from bluew.dbusted.interfaces import BluezInterfaceError as IfaceError
 from bluew.dbusted.interfaces import (BluezGattCharInterface,
                                       BluezAgentManagerInterface,
                                       BluezObjectInterface,
@@ -31,17 +32,22 @@ from bluew.dbusted.interfaces import (BluezGattCharInterface,
                                       BLEService,
                                       dbus_object_parser)
 
-from bluew.errors import (NoControllerAvailable,
+from bluew.errors import (BluewError,
+                          NoControllerAvailable,
                           ControllerSpecifiedNotFound,
                           PairError,
-                          DeviceNotAvailable)
+                          DeviceNotAvailable,
+                          ControllerNotReady,
+                          ReadWriteNotifyError,
+                          InvalidArgumentsError)
 
 from bluew.engine import EngineBluew
 
 from bluew.dbusted.decorators import (mac_to_dev,
                                       check_if_available,
                                       check_if_connected,
-                                      check_if_not_paired)
+                                      check_if_not_paired,
+                                      handle_errors)
 
 from gi.repository import GLib
 
@@ -75,7 +81,7 @@ class DBusted(EngineBluew):
         kwargs['version'] = version
         super().__init__(*args, **kwargs)
         self.cntrl = kwargs.get('cntrl', None)
-        self.timeout = kwargs.get('timeout', 3)
+        self.timeout = kwargs.get('timeout', 5)
         self._bus = DBusted.__bus
         self._init_cntrl()
         self.logger = logging.getLogger(__name__)
@@ -171,6 +177,7 @@ class DBusted(EngineBluew):
     @mac_to_dev
     @check_if_connected
     @check_if_available
+    @handle_errors
     def disconnect(self, mac: str) -> None:
         """
         Overriding EngineBluew's disconnect method.
@@ -185,6 +192,7 @@ class DBusted(EngineBluew):
     @mac_to_dev
     @check_if_available
     @check_if_not_paired
+    @handle_errors
     def pair(self, mac: str) -> None:
         """
         Overriding EngineBluew's pair method.
@@ -200,6 +208,7 @@ class DBusted(EngineBluew):
             raise PairError(self.name, self.version)
 
     @mac_to_dev
+    @handle_errors
     def remove(self, mac: str) -> None:
         """
         Overriding EngineBluew's remove method.
@@ -272,6 +281,7 @@ class DBusted(EngineBluew):
 
     @mac_to_dev
     @check_if_available
+    @handle_errors
     def info(self, mac):
         """
         Overriding EngineBluew's info method.
@@ -286,6 +296,7 @@ class DBusted(EngineBluew):
 
     @mac_to_dev
     @check_if_available
+    @handle_errors
     def trust(self, mac: str) -> None:
         """
         Overriding EngineBluew's trust method.
@@ -299,6 +310,7 @@ class DBusted(EngineBluew):
 
     @mac_to_dev
     @check_if_available
+    @handle_errors
     def distrust(self, mac: str) -> None:
         """
         Overriding EngineBluew's untrust method.
@@ -320,6 +332,7 @@ class DBusted(EngineBluew):
 
     @mac_to_dev
     @check_if_available
+    @handle_errors
     def read_attribute(self, mac: str, attribute: str) -> List[bytes]:
         """
         Overriding EngineBluew's read_attribute method.
@@ -335,6 +348,7 @@ class DBusted(EngineBluew):
 
     @mac_to_dev
     @check_if_available
+    @handle_errors
     def write_attribute(self, mac: str, attribute: str,
                         data: List[int]) -> None:
         """
@@ -352,6 +366,7 @@ class DBusted(EngineBluew):
 
     @mac_to_dev
     @check_if_available
+    @handle_errors
     def notify(self, mac: str, attribute: str, handler: Callable) -> None:
         """
         Overriding EngineBluew's trust method.
@@ -370,6 +385,7 @@ class DBusted(EngineBluew):
 
     @mac_to_dev
     @check_if_available
+    @handle_errors
     def stop_notify(self, mac: str, attribute: str) -> None:
         """
         Overriding EngineBluew's trust method.
@@ -382,6 +398,63 @@ class DBusted(EngineBluew):
         path = self._uuid_to_path(attribute, mac)
         gattchrciface = BluezGattCharInterface(self._bus, path)
         gattchrciface.stop_notify()
+
+    def _handle_errors(self, exp: IfaceError,
+                       command: Callable, *args, **kwargs) -> None:
+        auth_timeout = exp.error_name == IfaceError.BLUEZ_AUTH_TIMEOUT_ERR
+        auth_failed = exp.error_name == IfaceError.BLUEZ_AUTH_FAILED_ERR
+        auth_rejected = exp.error_name == IfaceError.BLUEZ_AUTH_REJECTED_ERR
+
+        if exp.error_name == IfaceError.BLUEZ_NOT_CONNECTED_ERR:
+            self.connect(args[0])
+
+        elif exp.error_name == IfaceError.NOT_PAIRED:
+            self.pair(args[0])
+
+        elif exp.error_name == IfaceError.BLUEZ_NOT_SUPPORTED_ERR:
+            self.stop_engine()
+            not_supported = ReadWriteNotifyError.NOT_SUPPORTED
+            raise ReadWriteNotifyError(long_reason=not_supported)
+
+        elif exp.error_name == IfaceError.BLUEZ_NOT_PERMITTED_ERR:
+            self.stop_engine()
+            not_permitted = ReadWriteNotifyError.NOT_PERMITTED
+            raise ReadWriteNotifyError(long_reason=not_permitted)
+
+        elif exp.error_name == IfaceError.BLUEZ_NOT_READY_ERR:
+            self.stop_engine()
+            raise ControllerNotReady
+
+        elif exp.error_name == IfaceError.BLUEZ_NOT_AUTHORIZED_ERR:
+            self.stop_engine()
+            not_authorized = ReadWriteNotifyError.NOT_AUTHORIZED
+            raise ReadWriteNotifyError(long_reason=not_authorized)
+
+        elif exp.error_name == IfaceError.BLUEZ_INVALID_VAL_LEN:
+            self.stop_engine()
+            invalid_len = InvalidArgumentsError.INVALID_LEN
+            raise InvalidArgumentsError(long_reason=invalid_len)
+
+        elif exp.error_name == IfaceError.UNKNOWN_ERROR:
+            command(*args, **kwargs)
+
+        elif exp.error_name == IfaceError.BLUEZ_INVALID_ARGUMENTS_ERR:
+            self.stop_engine()
+            invalid_args = InvalidArgumentsError.INVALID_ARGS
+            raise InvalidArgumentsError(long_reason=invalid_args)
+
+        elif exp.error_name == IfaceError.BLUEZ_IN_PROGRESS_ERR:
+            self.stop_engine()
+            in_progress = ReadWriteNotifyError.IN_PROGRESS
+            raise ReadWriteNotifyError(long_reason=in_progress)
+
+        elif exp.error_name == IfaceError.UNKNOWN_ERROR:
+            self.stop_engine()
+            raise BluewError(BluewError.UNEXPECTED_ERROR)
+
+        elif auth_failed or auth_timeout or auth_rejected:
+            self.stop_engine()
+            raise PairError(long_reason=PairError.AUTHENTICATION_ERROR)
 
     def _is_device_available(self, dev):
         self._start_scan()

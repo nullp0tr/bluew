@@ -12,6 +12,7 @@ This module contains some helper decorators for the dbusted engine.
 
 from functools import wraps
 from bluew.errors import DeviceNotAvailable
+from bluew.dbusted.interfaces import BluezInterfaceError as IfaceError
 
 
 def mac_to_dev(func):
@@ -57,4 +58,16 @@ def check_if_connected(func):
         if connected:
             return func(self, dev, *args, **kwargs)
         return
+    return _wrapper
+
+
+def handle_errors(func):
+    """Handle errors of interface calls."""
+    @wraps(func)
+    def _wrapper(self, *args, **kwargs):
+        try:
+            return func(self, *args, **kwargs)
+        except IfaceError as exp:
+            # pylint: disable=W0212
+            self._handle_errors(exp)
     return _wrapper
