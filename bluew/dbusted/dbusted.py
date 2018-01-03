@@ -399,8 +399,7 @@ class DBusted(EngineBluew):
         gattchrciface = BluezGattCharInterface(self._bus, path)
         gattchrciface.stop_notify()
 
-    def _handle_errors(self, exp: IfaceError,
-                       command: Callable, *args, **kwargs) -> None:
+    def _handle_errors(self, exp: IfaceError, *args) -> None:
         auth_timeout = exp.error_name == IfaceError.BLUEZ_AUTH_TIMEOUT_ERR
         auth_failed = exp.error_name == IfaceError.BLUEZ_AUTH_FAILED_ERR
         auth_rejected = exp.error_name == IfaceError.BLUEZ_AUTH_REJECTED_ERR
@@ -436,7 +435,7 @@ class DBusted(EngineBluew):
             raise InvalidArgumentsError(long_reason=invalid_len)
 
         elif exp.error_name == IfaceError.UNKNOWN_ERROR:
-            command(*args, **kwargs)
+            raise BluewError(BluewError.UNEXPECTED_ERROR)
 
         elif exp.error_name == IfaceError.BLUEZ_INVALID_ARGUMENTS_ERR:
             self.stop_engine()
