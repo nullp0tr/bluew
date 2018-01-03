@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/nullp0tr/bluew.svg?branch=master)](https://travis-ci.org/nullp0tr/Bluew)
 [![codecov](https://codecov.io/gh/nullp0tr/bluew/branch/master/graph/badge.svg)](https://codecov.io/gh/nullp0tr/bluew)
-[![version](https://img.shields.io/badge/version-0.3.1-green.svg)](https://img.shields.io/badge/version-0.2.0-green.svg)
+[![version](https://img.shields.io/badge/version-0.3.2-green.svg)](https://img.shields.io/badge/version-0.2.0-green.svg)
 
 ![logo](bluew_logo.png)
 
@@ -19,7 +19,7 @@ By now bluew has moved on from wrapping bluetoothctl, and has it's own engine/ba
 talks directly to bluez using the D-Bus API.
 
 
-### How to install?
+### How to install?'
 
 `pip3 install git+https://github.com/nullp0tr/bluew.git`
 
@@ -29,9 +29,9 @@ With sudo:
 
 
 Unfortunately since DBusted (bluew's current backend) is using python-dbus, 
-you also need to install python-gi from your system package manager.
+you also need to install the following packages from your system package manager.
 ##### Ubuntu:
-`sudo apt-get install python-gi`
+`sudo apt-get install python-gi python3-dbus libdbus-1-dev`
 
 We're currently looking for more native alternatives.
 
@@ -112,18 +112,29 @@ even more functions like:
 - notify
 - stop_notify
 
+### Flags:
+You can pass to any function/class imported from bluew the following flags:
+##### keep_alive:
+- *default*: True
+- *possible*: False
+- *usage*: Keep connection alive after Connection object is closed, or after a 
+command is executed.
+##### timeout:
+- *default*: 5 (seconds)
+- *possible*: N : float
+- *usage*: Time allowed to find the device, also used with get_devices() for duration
+of scanning. You can't pass this to Connection methods yet.
+##### cntrl:
+- *default*: None
+- *possible*: 'hciN'; N being an integer
+- *usage*: Controller you'd like to use for the operations, if None is left there's
+currently no guarantee which controller would be picked.
+
 ### TODO for 0.4.0 release
 
 - 90% Test coverage.
 - Better handling of bluez errors.
+- Fully automated hand-free pairing.
 - Better documentation.
 - Connect using advertising UUID instead of just mac.
 
-### Changelog:
-##### #0.3.0:
-- Changed from the blctl engine to DBusted (Implemented on top of dbus).
-- Added notify, stop_notify.
-- Added get_devices, get_controllers.
-- Added get_services, get_chrcs.
-- Added remove
-- Much more...
