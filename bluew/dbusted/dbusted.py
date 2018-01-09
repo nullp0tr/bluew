@@ -76,7 +76,7 @@ class DBusted(EngineBluew):
 
     def __init__(self, *args, **kwargs):
         name = "DBusted"
-        version = "0.3.6"
+        version = "0.3.7"
         kwargs['name'] = name
         kwargs['version'] = version
         super().__init__(*args, **kwargs)
@@ -399,16 +399,16 @@ class DBusted(EngineBluew):
         gattchrciface = BluezGattCharInterface(self._bus, path)
         gattchrciface.stop_notify()
 
-    def _handle_errors(self, exp: IfaceError, *args) -> None:
+    def _handle_errors(self, exp: IfaceError, *args, **kwargs) -> None:
         auth_timeout = exp.error_name == IfaceError.BLUEZ_AUTH_TIMEOUT_ERR
         auth_failed = exp.error_name == IfaceError.BLUEZ_AUTH_FAILED_ERR
         auth_rejected = exp.error_name == IfaceError.BLUEZ_AUTH_REJECTED_ERR
 
         if exp.error_name == IfaceError.BLUEZ_NOT_CONNECTED_ERR:
-            self.connect(args[0])
+            self.connect(args[0], **kwargs)
 
         elif exp.error_name == IfaceError.NOT_PAIRED:
-            self.pair(args[0])
+            self.pair(args[0], **kwargs)
 
         elif exp.error_name == IfaceError.BLUEZ_NOT_SUPPORTED_ERR:
             self.stop_engine()

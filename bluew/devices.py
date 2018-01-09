@@ -22,5 +22,5 @@ class Device(PPObj):
                  'Blocked', 'Connected', 'LegacyPairing',
                  'Name', 'Paired', 'ServicesResolved', 'Trusted',
                  'UUIDs', 'ManufacturerData', 'RSSI', 'Path',
-                 'ServiceData', 'AddressType'}
+                 'ServiceData', 'AddressType', 'Class', 'Icon'}
         super().__init__(attrs, **kwargs)

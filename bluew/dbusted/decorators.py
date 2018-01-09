@@ -69,5 +69,5 @@ def handle_errors(func):
             return func(self, *args, **kwargs)
         except IfaceError as exp:
             # pylint: disable=W0212
-            self._handle_errors(exp)
+            self._handle_errors(exp, *args, **kwargs)
     return _wrapper

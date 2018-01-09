@@ -31,7 +31,7 @@ With sudo:
 Unfortunately since DBusted (bluew's current backend) is using python-dbus, 
 you also need to install the following packages from your system package manager.
 ##### Ubuntu:
-`sudo apt-get install python-gi python3-dbus libdbus-1-dev`
+`sudo apt-get install python-gi python3-dbus libdbus-1-dev libdbus-glib-1-dev`
 
 We're currently looking for more native alternatives.
 
