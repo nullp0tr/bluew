@@ -12,6 +12,7 @@ with one device.
 
 
 import bluew.plugables
+from bluew.daemon import Daemon, daemonize
 
 
 UsedEngine = bluew.plugables.UsedEngine
@@ -52,6 +53,7 @@ class Connection:
         self.engine = UsedEngine(*args, **kwargs)
         self.mac = mac
         self._connect()
+        self.daemon = Daemon()
 
     def __enter__(self):
         return self
@@ -66,6 +68,7 @@ class Connection:
         self.engine.disconnect(self.mac)
 
     @close_on_error
+    @daemonize
     def pair(self):
         """Pair with bluetooth device."""
         return self.engine.pair(self.mac)

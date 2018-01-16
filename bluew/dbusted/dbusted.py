@@ -19,6 +19,8 @@ from typing import List, Optional, Callable  # pylint: disable=W0611
 
 from dbus.mainloop.glib import DBusGMainLoop
 import dbus
+from gi.repository import GLib
+
 
 from bluew.dbusted.interfaces import BluezInterfaceError as IfaceError
 from bluew.dbusted.interfaces import (BluezGattCharInterface,
@@ -48,8 +50,6 @@ from bluew.dbusted.decorators import (mac_to_dev,
                                       check_if_connected,
                                       check_if_not_paired,
                                       handle_errors)
-
-from gi.repository import GLib
 
 
 class DBusted(EngineBluew):

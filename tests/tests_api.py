@@ -173,7 +173,7 @@ class ConnectionTestWithDev(TestCase):
         cntrl = config['dev']['testcntrl']
         with bluew.Connection(mac, cntrl=cntrl) as connection:
             connection.trust()
-            connection.pair()
+            connection.pair(d_init=True)
             chrcs = connection.get_chrcs()
             has_atr = bool(filter(lambda chrc: chrc.UUID == attribute, chrcs))
             self.assertTrue(has_atr)
