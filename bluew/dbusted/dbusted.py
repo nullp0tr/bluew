@@ -163,6 +163,7 @@ class DBusted(EngineBluew):
 
     @mac_to_dev
     @check_if_available
+    @handle_errors
     def connect(self, mac: str) -> None:
         """
         Overriding EngineBluew's connect method.
