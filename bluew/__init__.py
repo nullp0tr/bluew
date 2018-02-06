@@ -11,13 +11,13 @@ by the Requests HTTP library.
 """
 
 import logging
+import bluew.errors
 from .api import connect, disconnect, remove
 from .api import pair, info, trust, distrust
 from .api import write_attribute, read_attribute
 from .api import Connection, get_devices
 from .devices import Device
 from .controllers import Controller
-from .errors import DeviceNotAvailable
 
 # ~~ For production ~~ #
 logging.getLogger(__name__).addHandler(logging.NullHandler())
@@ -41,7 +41,7 @@ __all__ = ['connect',
            'write_attribute',
            'read_attribute',
            'Connection',
-           'DeviceNotAvailable',
            'get_devices',
            'Device',
-           'Controller']
+           'Controller',
+           'errors']
