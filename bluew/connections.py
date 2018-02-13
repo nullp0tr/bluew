@@ -11,6 +11,7 @@ with one device.
 """
 
 
+from functools import wraps
 import bluew.plugables
 from bluew.daemon import Daemon, daemonize
 
@@ -24,6 +25,7 @@ def close_on_error(func):
     is called when an error occurs.
     """
 
+    @wraps(func)
     def wrapper(self, *args, **kwargs):
         """This function wraps the function passed to close_on_error()"""
         try:
