@@ -6,7 +6,7 @@ SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 SPHINXPROJ    = bluew
 SOURCEDIR     = .
-BUILDDIR      = _build
+BUILDDIR      = ../../bluew_docs
 
 # Put it first so that "make" without argument is like "make help".
 help:
