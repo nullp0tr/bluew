@@ -20,7 +20,7 @@ from .devices import Device
 from .controllers import Controller
 
 
-__version__ = '0.3.2'
+__version__ = '0.3.3'
 
 
 # ~~ For production ~~ #
