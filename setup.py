@@ -4,15 +4,16 @@ setup.py script for bluew.
 
 
 from setuptools import setup
+from bluew import __version__
 
 
 setup(
     name='bluew',
-    version='0.3.2',
-    description='Python Wrapper for Bluetoothctl',
+    version=__version__,
+    description='Bluetooth made easy.',
     url='https://github.com/nullp0tr/Bluew',
     author='Ahmed Alsharif (nullp0tr)',
-    author_email='ahmed@shnaboo.com',
+    author_email='ahmeds2000x@gmail.com',
     license='MIT',
     packages=['bluew', 'bluew/dbusted'],
     classifiers=[
@@ -29,6 +30,6 @@ setup(
         'Programming Language :: Python :: 3.7',
     ],
 
-    keywords='bluetooth bluez bluetoothctl wrapper',
+    keywords='bluetooth bluez BLE',
     install_requires=[]
 )
