@@ -19,6 +19,10 @@ from .api import Connection, get_devices
 from .devices import Device
 from .controllers import Controller
 
+
+__version__ = '0.3.2'
+
+
 # ~~ For production ~~ #
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
@@ -31,7 +35,8 @@ logging.getLogger(__name__).addHandler(logging.NullHandler())
 # logger.addHandler(handler)
 
 
-__all__ = ['connect',
+__all__ = ['__version__',
+           'connect',
            'disconnect',
            'pair',
            'remove',
