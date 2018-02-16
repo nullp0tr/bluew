@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/nullp0tr/bluew.svg?branch=master)](https://travis-ci.org/nullp0tr/Bluew)
 [![codecov](https://codecov.io/gh/nullp0tr/bluew/branch/master/graph/badge.svg)](https://codecov.io/gh/nullp0tr/bluew)
-[![version](https://img.shields.io/badge/version-0.3.2-green.svg)](https://img.shields.io/badge/version-0.2.0-green.svg)
+[![version](https://img.shields.io/badge/version-0.3.3-green.svg)](https://img.shields.io/badge/version-0.2.0-green.svg)
 
 ![logo](bluew_logo.png)
 
@@ -30,6 +30,7 @@ With sudo:
 
 Unfortunately since DBusted (bluew's current backend) is using python-dbus, 
 you also need to install the following packages from your system package manager.
+
 ##### Ubuntu:
 `sudo apt-get install python-gi python3-dbus libdbus-1-dev libdbus-glib-1-dev`
 
@@ -37,6 +38,10 @@ We're currently looking for more native alternatives.
 
 If you've managed to install bluew, congratulations, you passed the biggest 
 obstacle in using it. From now it should be a smooth ride.
+
+### Documentation
+Complete documentation is currenly under construction,
+but you can access the draft under https://nullp0tr.github.io/bluew/
 
 ### Simple use:
 If you just wanna do something quickly 
