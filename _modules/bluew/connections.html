@@ -1,0 +1,213 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>bluew.connections &#8212; bluew 0.3.2 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for bluew.connections</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">bluew.connections</span>
+<span class="sd">~~~~~~~~~~~~~~~~~</span>
+
+<span class="sd">This module provides a Connection object to manage connections</span>
+<span class="sd">with one device.</span>
+
+
+<span class="sd">:copyright: (c) 2017 by Ahmed Alsharif.</span>
+<span class="sd">:license: MIT, see LICENSE for more details.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">wraps</span>
+<span class="kn">import</span> <span class="nn">bluew.plugables</span>
+<span class="kn">from</span> <span class="nn">bluew.daemon</span> <span class="k">import</span> <span class="n">Daemon</span><span class="p">,</span> <span class="n">daemonize</span>
+
+
+<span class="n">UsedEngine</span> <span class="o">=</span> <span class="n">bluew</span><span class="o">.</span><span class="n">plugables</span><span class="o">.</span><span class="n">UsedEngine</span>
+
+
+<span class="k">def</span> <span class="nf">close_on_error</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This decorator makes sure that an object&#39;s close() method</span>
+<span class="sd">    is called when an error occurs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;This function wraps the function passed to close_on_error()&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exp</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="n">exp</span>
+    <span class="k">return</span> <span class="n">wrapper</span>
+
+
+<div class="viewcode-block" id="Connection"><a class="viewcode-back" href="../../api.html#bluew.Connection">[docs]</a><span class="k">class</span> <span class="nc">Connection</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;A Bluew Connection</span>
+
+<span class="sd">    Provides a persistent connection with one device.</span>
+
+<span class="sd">    Basic Usage:</span>
+
+<span class="sd">        &gt;&gt;&gt; import bluew</span>
+<span class="sd">        &gt;&gt;&gt; mac = &#39;xx:xx:xx:xx:xx&#39;</span>
+<span class="sd">        &gt;&gt;&gt; device = bluew.Connection(mac)</span>
+<span class="sd">        &gt;&gt;&gt; device.info()</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mac</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keep_alive</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;keep_alive&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="n">UsedEngine</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mac</span> <span class="o">=</span> <span class="n">mac</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_connect</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="n">Daemon</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="nd">@close_on_error</span>
+    <span class="k">def</span> <span class="nf">_connect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">start_engine</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mac</span><span class="p">)</span>
+
+    <span class="nd">@close_on_error</span>
+    <span class="k">def</span> <span class="nf">_disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mac</span><span class="p">)</span>
+
+    <span class="nd">@close_on_error</span>
+    <span class="nd">@daemonize</span>
+    <span class="k">def</span> <span class="nf">pair</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Pair with bluetooth device.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">pair</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mac</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Connection.trust"><a class="viewcode-back" href="../../api.html#bluew.Connection.trust">[docs]</a>    <span class="nd">@close_on_error</span>
+    <span class="k">def</span> <span class="nf">trust</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Trust a bluetooth device.&quot;&quot;&quot;</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">trust</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mac</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Connection.write_attribute"><a class="viewcode-back" href="../../api.html#bluew.Connection.write_attribute">[docs]</a>    <span class="nd">@close_on_error</span>
+    <span class="k">def</span> <span class="nf">write_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write to a bluetooth attribute.&quot;&quot;&quot;</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">write_attribute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mac</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Connection.read_attribute"><a class="viewcode-back" href="../../api.html#bluew.Connection.read_attribute">[docs]</a>    <span class="nd">@close_on_error</span>
+    <span class="k">def</span> <span class="nf">read_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read a bluetooth attribute.&quot;&quot;&quot;</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">read_attribute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mac</span><span class="p">,</span> <span class="n">attribute</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Connection.info"><a class="viewcode-back" href="../../api.html#bluew.Connection.info">[docs]</a>    <span class="nd">@close_on_error</span>
+    <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get device info.&quot;&quot;&quot;</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mac</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Connection.get_controllers"><a class="viewcode-back" href="../../api.html#bluew.Connection.get_controllers">[docs]</a>    <span class="nd">@close_on_error</span>
+    <span class="k">def</span> <span class="nf">get_controllers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get available bluetooth controllers.&quot;&quot;&quot;</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">get_controllers</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Connection.get_services"><a class="viewcode-back" href="../../api.html#bluew.Connection.get_services">[docs]</a>    <span class="nd">@close_on_error</span>
+    <span class="k">def</span> <span class="nf">get_services</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get available BLE services of a device.&quot;&quot;&quot;</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">get_services</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mac</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Connection.get_chrcs"><a class="viewcode-back" href="../../api.html#bluew.Connection.get_chrcs">[docs]</a>    <span class="nd">@close_on_error</span>
+    <span class="k">def</span> <span class="nf">get_chrcs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get available BLE characteristics of a device.&quot;&quot;&quot;</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">get_chrcs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mac</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Connection.notify"><a class="viewcode-back" href="../../api.html#bluew.Connection.notify">[docs]</a>    <span class="nd">@close_on_error</span>
+    <span class="k">def</span> <span class="nf">notify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Turn on notifications on attribute, and call handler with data.&quot;&quot;&quot;</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">notify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mac</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span> <span class="n">handler</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Connection.stop_notify"><a class="viewcode-back" href="../../api.html#bluew.Connection.stop_notify">[docs]</a>    <span class="nd">@close_on_error</span>
+    <span class="k">def</span> <span class="nf">stop_notify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Turn off notifications on attribute.&quot;&quot;&quot;</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">stop_notify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mac</span><span class="p">,</span> <span class="n">attribute</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Connection.remove"><a class="viewcode-back" href="../../api.html#bluew.Connection.remove">[docs]</a>    <span class="nd">@close_on_error</span>
+    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Disconnect and unpair device.&quot;&quot;&quot;</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mac</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Connection.close"><a class="viewcode-back" href="../../api.html#bluew.Connection.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Close the conncection.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">keep_alive</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">stop_engine</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Ahmed Alsharif.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
