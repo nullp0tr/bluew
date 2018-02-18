@@ -6,7 +6,7 @@
   <head>
         <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>API &#8212; bluew 0.3.2 documentation</title>
+    <title>The Basic Bluew API &#8212; bluew 0.3.3 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="_static/documentation_options.js"></script>
@@ -16,7 +16,8 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Welcome to bluew’s documentation!" href="index.html" />
+    <link rel="next" title="Advanced Connection API" href="connection.html" />
+    <link rel="prev" title="Bluew: Bluetooth made simple" href="index.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -32,176 +33,142 @@
           <div class="body" role="main">
             
   <div class="section" id="module-bluew">
-<span id="api"></span><h1>API<a class="headerlink" href="#module-bluew" title="Permalink to this headline">¶</a></h1>
-<span class="target" id="module-bluew"></span><p>Bluew: A Bluetooth Library.</p>
-<p>Bluew a simplified bluetooth library for python,
-with a clear and easy API, which was heavily influenced
-by the Requests HTTP library.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">copyright:</th><td class="field-body"><ol class="first loweralpha simple" start="3">
-<li>2017 by Ahmed Alsharif.</li>
-</ol>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">license:</th><td class="field-body"><p class="first last">MIT, see LICENSE for more details.</p>
-</td>
-</tr>
-</tbody>
-</table>
+<span id="the-basic-bluew-api"></span><span id="api"></span><h1>The Basic Bluew API<a class="headerlink" href="#module-bluew" title="Permalink to this headline">¶</a></h1>
+<p>This document covers the basic one-time API calls you can make with bluew.</p>
+<div class="section" id="main-interface">
+<h2>Main Interface<a class="headerlink" href="#main-interface" title="Permalink to this headline">¶</a></h2>
+<p>The following 10 functions are accessible directly from bluew.</p>
 <dl class="function">
 <dt id="bluew.connect">
-<code class="descclassname">bluew.</code><code class="descname">connect</code><span class="sig-paren">(</span><em>mac</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/api.html#connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.connect" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">bluew.</code><code class="descname">connect</code><span class="sig-paren">(</span><em>mac: str</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/bluew/api.html#connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.connect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Connect to a bluetooth device.
-:type mac: <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>
 :param mac: MAC address of bluetooth device.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">None</span></code></td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="bluew.disconnect">
-<code class="descclassname">bluew.</code><code class="descname">disconnect</code><span class="sig-paren">(</span><em>mac</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/api.html#disconnect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.disconnect" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">bluew.</code><code class="descname">disconnect</code><span class="sig-paren">(</span><em>mac: str</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/bluew/api.html#disconnect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.disconnect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Disconnect from a bluetooth device.
-:type mac: <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>
 :param mac: MAC address of bluetooth device.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">None</span></code></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="bluew.pair">
-<code class="descclassname">bluew.</code><code class="descname">pair</code><span class="sig-paren">(</span><em>mac</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/api.html#pair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.pair" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pair with a bluetooth device.
-:type mac: <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>
-:param mac: MAC address of bluetooth device.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">None</span></code></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="bluew.remove">
-<code class="descclassname">bluew.</code><code class="descname">remove</code><span class="sig-paren">(</span><em>mac</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/api.html#remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.remove" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove a bluetooth device.
-:type mac: <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>
-:param mac: MAC address of bluetooth device.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">None</span></code></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="bluew.info">
-<code class="descclassname">bluew.</code><code class="descname">info</code><span class="sig-paren">(</span><em>mac</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/api.html#info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.info" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get device info.
-:type mac: <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>
-:param mac: MAC address of bluetooth device.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">Device</span></code></td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="bluew.trust">
-<code class="descclassname">bluew.</code><code class="descname">trust</code><span class="sig-paren">(</span><em>mac</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/api.html#trust"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.trust" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">bluew.</code><code class="descname">trust</code><span class="sig-paren">(</span><em>mac: str</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/bluew/api.html#trust"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.trust" title="Permalink to this definition">¶</a></dt>
 <dd><p>Trust a bluetooth device.
-:type mac: <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>
 :param mac: MAC address of bluetooth device.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">None</span></code></td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="bluew.distrust">
-<code class="descclassname">bluew.</code><code class="descname">distrust</code><span class="sig-paren">(</span><em>mac</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/api.html#distrust"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.distrust" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">bluew.</code><code class="descname">distrust</code><span class="sig-paren">(</span><em>mac: str</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/bluew/api.html#distrust"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.distrust" title="Permalink to this definition">¶</a></dt>
 <dd><p>Distrust a bluetooth device.
-:type mac: <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>
 :param mac: MAC address of bluetooth device.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">None</span></code></td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="function">
-<dt id="bluew.write_attribute">
-<code class="descclassname">bluew.</code><code class="descname">write_attribute</code><span class="sig-paren">(</span><em>mac</em>, <em>attribute</em>, <em>data</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/api.html#write_attribute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.write_attribute" title="Permalink to this definition">¶</a></dt>
-<dd><p>Write a bluetooth attribute on bluetooth device.
-:type mac: <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>
-:param mac: MAC address of bluetooth device.
-:type attribute: <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>
-:param attribute: Bluetooth attribute to write to.
-:type data: <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]
-:param data: Data to write to attribute.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">None</span></code></td>
-</tr>
-</tbody>
-</table>
+<dt id="bluew.pair">
+<code class="descclassname">bluew.</code><code class="descname">pair</code><span class="sig-paren">(</span><em>mac: str</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/bluew/api.html#pair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.pair" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pair with a bluetooth device.
+:param mac: MAC address of bluetooth device.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bluew.remove">
+<code class="descclassname">bluew.</code><code class="descname">remove</code><span class="sig-paren">(</span><em>mac: str</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/bluew/api.html#remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a bluetooth device.
+:param mac: MAC address of bluetooth device.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bluew.get_devices">
+<code class="descclassname">bluew.</code><code class="descname">get_devices</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; List[bluew.devices.Device]<a class="reference internal" href="_modules/bluew/api.html#get_devices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.get_devices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get list of devices around.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bluew.info">
+<code class="descclassname">bluew.</code><code class="descname">info</code><span class="sig-paren">(</span><em>mac: str</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; bluew.devices.Device<a class="reference internal" href="_modules/bluew/api.html#info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get device info.
+:param mac: MAC address of bluetooth device.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="bluew.read_attribute">
-<code class="descclassname">bluew.</code><code class="descname">read_attribute</code><span class="sig-paren">(</span><em>mac</em>, <em>attribute</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/api.html#read_attribute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.read_attribute" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">bluew.</code><code class="descname">read_attribute</code><span class="sig-paren">(</span><em>mac: str</em>, <em>attribute: str</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; List[bytes]<a class="reference internal" href="_modules/bluew/api.html#read_attribute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.read_attribute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read a bluetooth attribute on bluetooth device.
-:type mac: <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>
 :param mac: MAC address of bluetooth device.
-:type attribute: <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>
 :param attribute: Bluetooth attribute to read.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code>]</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
-<dl class="class">
+<dl class="function">
+<dt id="bluew.write_attribute">
+<code class="descclassname">bluew.</code><code class="descname">write_attribute</code><span class="sig-paren">(</span><em>mac: str, attribute: str, data: List[int], *args, **kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/bluew/api.html#write_attribute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.write_attribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a bluetooth attribute on bluetooth device.
+:param mac: MAC address of bluetooth device.
+:param attribute: Bluetooth attribute to write to.
+:param data: Data to write to attribute.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="exceptions">
+<h2>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="bluew.errors.BluewError">
+<em class="property">exception </em><code class="descclassname">bluew.errors.</code><code class="descname">BluewError</code><span class="sig-paren">(</span><em>reason</em>, <em>long_reason=''</em>, <em>name=''</em>, <em>version=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/errors.html#BluewError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.errors.BluewError" title="Permalink to this definition">¶</a></dt>
+<dd><p>For those times when the Engine blows.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="bluew.errors.DeviceNotAvailable">
+<em class="property">exception </em><code class="descclassname">bluew.errors.</code><code class="descname">DeviceNotAvailable</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/errors.html#DeviceNotAvailable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.errors.DeviceNotAvailable" title="Permalink to this definition">¶</a></dt>
+<dd><p>This error is raised by when the bluetooth devices specified
+is not found.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="bluew.errors.PairError">
+<em class="property">exception </em><code class="descclassname">bluew.errors.</code><code class="descname">PairError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/errors.html#PairError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.errors.PairError" title="Permalink to this definition">¶</a></dt>
+<dd><p>This error is raised when a pairing error that can’t be handled is raised.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="bluew.errors.ReadWriteNotifyError">
+<em class="property">exception </em><code class="descclassname">bluew.errors.</code><code class="descname">ReadWriteNotifyError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/errors.html#ReadWriteNotifyError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.errors.ReadWriteNotifyError" title="Permalink to this definition">¶</a></dt>
+<dd><p>This error is raised when a read/write fail that can’t be handled happens.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="bluew.errors.InvalidArgumentsError">
+<em class="property">exception </em><code class="descclassname">bluew.errors.</code><code class="descname">InvalidArgumentsError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/errors.html#InvalidArgumentsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.errors.InvalidArgumentsError" title="Permalink to this definition">¶</a></dt>
+<dd><p>This error is rasied when arguemnts passed are.. well.. invalid.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="bluew.errors.NoControllerAvailable">
+<em class="property">exception </em><code class="descclassname">bluew.errors.</code><code class="descname">NoControllerAvailable</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/errors.html#NoControllerAvailable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.errors.NoControllerAvailable" title="Permalink to this definition">¶</a></dt>
+<dd><p>This error is raised when no bluetooth controllers
+are found.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="bluew.errors.ControllerSpecifiedNotFound">
+<em class="property">exception </em><code class="descclassname">bluew.errors.</code><code class="descname">ControllerSpecifiedNotFound</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/errors.html#ControllerSpecifiedNotFound"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.errors.ControllerSpecifiedNotFound" title="Permalink to this definition">¶</a></dt>
+<dd><p>This error is raised when the controller specified
+is not found by bluew.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="bluew.errors.ControllerNotReady">
+<em class="property">exception </em><code class="descclassname">bluew.errors.</code><code class="descname">ControllerNotReady</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/errors.html#ControllerNotReady"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.errors.ControllerNotReady" title="Permalink to this definition">¶</a></dt>
+<dd><p>This error is raised when the controller specified or picked by default
+is not ready.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="bluew-connection">
+<h2>Bluew Connection<a class="headerlink" href="#bluew-connection" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="sessionapi"></span><dl class="class">
 <dt id="bluew.Connection">
 <em class="property">class </em><code class="descclassname">bluew.</code><code class="descname">Connection</code><span class="sig-paren">(</span><em>mac</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/connections.html#Connection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.Connection" title="Permalink to this definition">¶</a></dt>
 <dd><p>A Bluew Connection</p>
@@ -281,32 +248,7 @@ by the Requests HTTP library.</p>
 
 </dd></dl>
 
-<dl class="function">
-<dt id="bluew.get_devices">
-<code class="descclassname">bluew.</code><code class="descname">get_devices</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/api.html#get_devices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.get_devices" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get list of devices around.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Device</span></code>]</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="class">
-<dt id="bluew.Device">
-<em class="property">class </em><code class="descclassname">bluew.</code><code class="descname">Device</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/devices.html#Device"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.Device" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bluetooth device object.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="bluew.Controller">
-<em class="property">class </em><code class="descclassname">bluew.</code><code class="descname">Controller</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/controllers.html#Controller"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.Controller" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bluetooth controller object.</p>
-</dd></dl>
-
+</div>
 </div>
 
 
@@ -314,11 +256,22 @@ by the Requests HTTP library.</p>
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper"><div class="relations">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The Basic Bluew API</a><ul>
+<li><a class="reference internal" href="#main-interface">Main Interface</a></li>
+<li><a class="reference internal" href="#exceptions">Exceptions</a></li>
+<li><a class="reference internal" href="#bluew-connection">Bluew Connection</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="index.html" title="previous chapter">Welcome to bluew’s documentation!</a></li>
+      <li>Previous: <a href="index.html" title="previous chapter">Bluew: Bluetooth made simple</a></li>
+      <li>Next: <a href="connection.html" title="next chapter">Advanced Connection API</a></li>
   </ul></li>
 </ul>
 </div>
@@ -349,14 +302,14 @@ by the Requests HTTP library.</p>
       &copy;2018, Ahmed Alsharif.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
-      |
       <a href="_sources/api.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
+    
+    <a href="https://github.com/nullp0tr/bluew" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
     
 
     

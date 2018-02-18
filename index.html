@@ -6,7 +6,7 @@
   <head>
         <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Welcome to bluew’s documentation! &#8212; bluew 0.3.2 documentation</title>
+    <title>Bluew: Bluetooth made simple &#8212; bluew 0.3.3 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="_static/documentation_options.js"></script>
@@ -16,7 +16,7 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="API" href="api.html" />
+    <link rel="next" title="The Basic Bluew API" href="api.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -31,21 +31,55 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="welcome-to-bluew-s-documentation">
-<h1>Welcome to bluew’s documentation!<a class="headerlink" href="#welcome-to-bluew-s-documentation" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="bluew-bluetooth-made-simple">
+<h1>Bluew: Bluetooth made simple<a class="headerlink" href="#bluew-bluetooth-made-simple" title="Permalink to this headline">¶</a></h1>
+<p>Release v0.3.3.</p>
+<p><strong>Bluew</strong> is a simple no boiler-plate bluetooth library, that handles all the
+nifty details for you in the background so you can focus on writing programs.</p>
+<hr class="docutils" />
+<p><strong>How simple are we talking?</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">bluew</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bluew</span><span class="o">.</span><span class="n">write_attribute</span><span class="p">(</span><span class="n">mac</span><span class="o">=</span><span class="s2">&quot;XX:XX:XX:XX:XX&quot;</span><span class="p">,</span>
+<span class="gp">... </span>                      <span class="n">attribute</span><span class="o">=</span><span class="s2">&quot;7aabf8d2-14c9-11e8-b642-0ed5f89f718b&quot;</span><span class="p">,</span>
+<span class="gp">... </span>                      <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="mh">0x03</span><span class="p">,</span> <span class="mh">0x03</span><span class="p">,</span> <span class="mh">0x01</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>That was all you’d need to do to write to a BLE characteristic on a device.</p>
+<p><strong>Bluew</strong> aims to make communicating with bluetooth devices and specially BLE
+powered devices as easy as possible, but taking out all the distractions and
+offering a finely tuned interface that has enough to do everything you’d need,
+without clogging your source program with boiler-plate code.</p>
+<div class="section" id="useful-features">
+<h2>Useful Features<a class="headerlink" href="#useful-features" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li>Connect, Pair and Trust</li>
+<li>Read and Write Characteristics</li>
+<li>Notify with Callbacks</li>
+<li>Get Available Devices</li>
+<li>Get Available Controllers</li>
+<li>Pick your Controller/Adapter of Choice</li>
+<li>Get Characteristics and Services of a Device</li>
+<li>Keep-Alive or Disconnect when done</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="user-guide">
+<h2>User Guide<a class="headerlink" href="#user-guide" title="Permalink to this headline">¶</a></h2>
+<p>Information about the bluew API and how to use it. Bluew has basically two ways
+of usage. You can either make a direct call like bluew.connect(..) or
+bluew.read_attribute(..) or you can create a Connection object.</p>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">The Basic Bluew API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api.html#main-interface">Main Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#exceptions">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#bluew-connection">Bluew Connection</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
-<div class="section" id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
-<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
-<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
-<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
-</ul>
 </div>
 
 
@@ -56,14 +90,17 @@
         <div class="sphinxsidebarwrapper">
   <h3><a href="#">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Welcome to bluew’s documentation!</a></li>
-<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+<li><a class="reference internal" href="#">Bluew: Bluetooth made simple</a><ul>
+<li><a class="reference internal" href="#useful-features">Useful Features</a></li>
+<li><a class="reference internal" href="#user-guide">User Guide</a></li>
+</ul>
+</li>
 </ul>
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="#">Documentation overview</a><ul>
-      <li>Next: <a href="api.html" title="next chapter">API</a></li>
+      <li>Next: <a href="api.html" title="next chapter">The Basic Bluew API</a></li>
   </ul></li>
 </ul>
 </div>
@@ -94,14 +131,14 @@
       &copy;2018, Ahmed Alsharif.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
-      |
       <a href="_sources/index.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
+    
+    <a href="https://github.com/nullp0tr/bluew" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
     
 
     
