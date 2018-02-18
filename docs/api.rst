@@ -12,7 +12,7 @@ This document covers the basic one-time API calls you can make with bluew.
 Main Interface
 --------------
 
-The following 10 functions are accessible directly from bluew.
+The following 11 functions are accessible directly from bluew.
 
 .. autofunction:: connect
 .. autofunction:: disconnect
@@ -20,7 +20,8 @@ The following 10 functions are accessible directly from bluew.
 .. autofunction:: distrust
 .. autofunction:: pair
 .. autofunction:: remove
-.. autofunction:: get_devices
+.. autofunction:: devices
+.. autofunction:: controllers
 .. autofunction:: info
 .. autofunction:: read_attribute
 .. autofunction:: write_attribute

@@ -95,18 +95,15 @@ class Connection:
         """Get device info."""
         return self.engine.info(self.mac)
 
+    @property
     @close_on_error
-    def get_controllers(self):
-        """Get available bluetooth controllers."""
-        return self.engine.get_controllers()
-
-    @close_on_error
-    def get_services(self):
+    def services(self):
         """Get available BLE services of a device."""
         return self.engine.get_services(self.mac)
 
+    @property
     @close_on_error
-    def get_chrcs(self):
+    def chrcs(self):
         """Get available BLE characteristics of a device."""
         return self.engine.get_chrcs(self.mac)
 
