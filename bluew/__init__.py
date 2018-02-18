@@ -15,7 +15,7 @@ import bluew.errors
 from .api import connect, disconnect, remove
 from .api import pair, info, trust, distrust
 from .api import write_attribute, read_attribute
-from .api import Connection, get_devices
+from .api import Connection, devices, controllers
 from .device import Device
 from .controller import Controller
 
@@ -46,7 +46,8 @@ __all__ = ['__version__',
            'write_attribute',
            'read_attribute',
            'Connection',
-           'get_devices',
+           'devices',
+           'controllers',
            'Device',
            'Controller',
            'errors']
