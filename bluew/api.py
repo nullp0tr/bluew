@@ -22,7 +22,7 @@ from typing import List
 
 from .connections import Connection
 from .plugables import UsedEngine
-from .devices import Device
+from .device import Device
 
 
 def get_devices(*args, **kwargs) -> List[Device]:

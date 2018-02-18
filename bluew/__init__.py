@@ -16,8 +16,8 @@ from .api import connect, disconnect, remove
 from .api import pair, info, trust, distrust
 from .api import write_attribute, read_attribute
 from .api import Connection, get_devices
-from .devices import Device
-from .controllers import Controller
+from .device import Device
+from .controller import Controller
 
 
 __version__ = '0.3.3'
