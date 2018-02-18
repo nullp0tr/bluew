@@ -589,6 +589,28 @@ class BluezObjectInterface(object):
         self.bus = bus
         bluez_obj = self.bus.get_object(BLUEZ_SERVICE_NAME, "/")
         self.manager = dbus.Interface(bluez_obj, DBUS_OM_IFACE)
+        self.manager.connect_to_signal('InterfacesAdded',
+                                       self._interface_added)
+        self.manager.connect_to_signal('InterfacesRemoved',
+                                       self._interface_removed)
+        self.device_added_callback = lambda *args: None
+        self.device_removed_callback = lambda *args: None
+        self.adapter_added_callback = lambda *args: None
+        self.adapter_removed_callback = lambda *args: None
+
+    def _interface_added(self, path, obj):
+        path = dbus_object_parser(path)
+        if 'org.bluez.Device1' in obj.keys():
+            self.device_added_callback(path)
+        elif 'org.bluez.Adapter1' in obj.keys():
+            self.adapter_added_callback(path)
+
+    def _interface_removed(self, path, obj):
+        path = dbus_object_parser(path)
+        if 'org.bluez.Device1' in obj:
+            self.device_removed_callback(path)
+        elif 'org.bluez.Adapter1' in obj:
+            self.adapter_removed_callback(path)
 
     def _get_objects(self, iface):
         objects = self.manager.GetManagedObjects().items()
