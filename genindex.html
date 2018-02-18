@@ -38,7 +38,6 @@
  <a href="#B"><strong>B</strong></a>
  | <a href="#C"><strong>C</strong></a>
  | <a href="#D"><strong>D</strong></a>
- | <a href="#G"><strong>G</strong></a>
  | <a href="#I"><strong>I</strong></a>
  | <a href="#N"><strong>N</strong></a>
  | <a href="#P"><strong>P</strong></a>
@@ -63,23 +62,19 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#bluew.Connection.close">close() (bluew.Connection method)</a>
-
-      <ul>
-        <li><a href="connection.html#bluew.connections.Connection.close">(bluew.connections.Connection method)</a>
+      <li><a href="api.html#bluew.Connection.chrcs">chrcs (bluew.Connection attribute)</a>
 </li>
-      </ul></li>
+      <li><a href="api.html#bluew.Connection.close">close() (bluew.Connection method)</a>
+</li>
       <li><a href="api.html#bluew.connect">connect() (in module bluew)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#bluew.Connection">Connection (class in bluew)</a>
-
-      <ul>
-        <li><a href="connection.html#bluew.connections.Connection">(class in bluew.connections)</a>
 </li>
-      </ul></li>
       <li><a href="api.html#bluew.errors.ControllerNotReady">ControllerNotReady</a>
+</li>
+      <li><a href="api.html#bluew.controllers">controllers() (in module bluew)</a>
 </li>
       <li><a href="api.html#bluew.errors.ControllerSpecifiedNotFound">ControllerSpecifiedNotFound</a>
 </li>
@@ -91,6 +86,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#bluew.errors.DeviceNotAvailable">DeviceNotAvailable</a>
 </li>
+      <li><a href="api.html#bluew.devices">devices() (in module bluew)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#bluew.disconnect">disconnect() (in module bluew)</a>
@@ -100,42 +97,12 @@
   </ul></td>
 </tr></table>
 
-<h2 id="G">G</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#bluew.Connection.get_chrcs">get_chrcs() (bluew.Connection method)</a>
-
-      <ul>
-        <li><a href="connection.html#bluew.connections.Connection.get_chrcs">(bluew.connections.Connection method)</a>
-</li>
-      </ul></li>
-      <li><a href="api.html#bluew.Connection.get_controllers">get_controllers() (bluew.Connection method)</a>
-
-      <ul>
-        <li><a href="connection.html#bluew.connections.Connection.get_controllers">(bluew.connections.Connection method)</a>
-</li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#bluew.get_devices">get_devices() (in module bluew)</a>
-</li>
-      <li><a href="api.html#bluew.Connection.get_services">get_services() (bluew.Connection method)</a>
-
-      <ul>
-        <li><a href="connection.html#bluew.connections.Connection.get_services">(bluew.connections.Connection method)</a>
-</li>
-      </ul></li>
-  </ul></td>
-</tr></table>
-
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#bluew.Connection.info">info() (bluew.Connection method)</a>
 
       <ul>
-        <li><a href="connection.html#bluew.connections.Connection.info">(bluew.connections.Connection method)</a>
-</li>
         <li><a href="api.html#bluew.info">(in module bluew)</a>
 </li>
       </ul></li>
@@ -154,11 +121,7 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#bluew.Connection.notify">notify() (bluew.Connection method)</a>
-
-      <ul>
-        <li><a href="connection.html#bluew.connections.Connection.notify">(bluew.connections.Connection method)</a>
 </li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -180,8 +143,6 @@
       <li><a href="api.html#bluew.Connection.read_attribute">read_attribute() (bluew.Connection method)</a>
 
       <ul>
-        <li><a href="connection.html#bluew.connections.Connection.read_attribute">(bluew.connections.Connection method)</a>
-</li>
         <li><a href="api.html#bluew.read_attribute">(in module bluew)</a>
 </li>
       </ul></li>
@@ -192,8 +153,6 @@
       <li><a href="api.html#bluew.Connection.remove">remove() (bluew.Connection method)</a>
 
       <ul>
-        <li><a href="connection.html#bluew.connections.Connection.remove">(bluew.connections.Connection method)</a>
-</li>
         <li><a href="api.html#bluew.remove">(in module bluew)</a>
 </li>
       </ul></li>
@@ -203,12 +162,12 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#bluew.Connection.stop_notify">stop_notify() (bluew.Connection method)</a>
-
-      <ul>
-        <li><a href="connection.html#bluew.connections.Connection.stop_notify">(bluew.connections.Connection method)</a>
+      <li><a href="api.html#bluew.Connection.services">services (bluew.Connection attribute)</a>
 </li>
-      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#bluew.Connection.stop_notify">stop_notify() (bluew.Connection method)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -218,8 +177,6 @@
       <li><a href="api.html#bluew.Connection.trust">trust() (bluew.Connection method)</a>
 
       <ul>
-        <li><a href="connection.html#bluew.connections.Connection.trust">(bluew.connections.Connection method)</a>
-</li>
         <li><a href="api.html#bluew.trust">(in module bluew)</a>
 </li>
       </ul></li>
@@ -232,8 +189,6 @@
       <li><a href="api.html#bluew.Connection.write_attribute">write_attribute() (bluew.Connection method)</a>
 
       <ul>
-        <li><a href="connection.html#bluew.connections.Connection.write_attribute">(bluew.connections.Connection method)</a>
-</li>
         <li><a href="api.html#bluew.write_attribute">(in module bluew)</a>
 </li>
       </ul></li>

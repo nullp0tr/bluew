@@ -16,7 +16,6 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Advanced Connection API" href="connection.html" />
     <link rel="prev" title="Bluew: Bluetooth made simple" href="index.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -37,7 +36,7 @@
 <p>This document covers the basic one-time API calls you can make with bluew.</p>
 <div class="section" id="main-interface">
 <h2>Main Interface<a class="headerlink" href="#main-interface" title="Permalink to this headline">¶</a></h2>
-<p>The following 10 functions are accessible directly from bluew.</p>
+<p>The following 11 functions are accessible directly from bluew.</p>
 <dl class="function">
 <dt id="bluew.connect">
 <code class="descclassname">bluew.</code><code class="descname">connect</code><span class="sig-paren">(</span><em>mac: str</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/bluew/api.html#connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.connect" title="Permalink to this definition">¶</a></dt>
@@ -81,14 +80,20 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="bluew.get_devices">
-<code class="descclassname">bluew.</code><code class="descname">get_devices</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; List[bluew.devices.Device]<a class="reference internal" href="_modules/bluew/api.html#get_devices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.get_devices" title="Permalink to this definition">¶</a></dt>
+<dt id="bluew.devices">
+<code class="descclassname">bluew.</code><code class="descname">devices</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; List[bluew.device.Device]<a class="reference internal" href="_modules/bluew/api.html#devices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.devices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get list of devices around.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="bluew.controllers">
+<code class="descclassname">bluew.</code><code class="descname">controllers</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; List[bluew.controller.Controller]<a class="reference internal" href="_modules/bluew/api.html#controllers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.controllers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get list of available controllers.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="bluew.info">
-<code class="descclassname">bluew.</code><code class="descname">info</code><span class="sig-paren">(</span><em>mac: str</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; bluew.devices.Device<a class="reference internal" href="_modules/bluew/api.html#info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.info" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">bluew.</code><code class="descname">info</code><span class="sig-paren">(</span><em>mac: str</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; bluew.device.Device<a class="reference internal" href="_modules/bluew/api.html#info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.info" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get device info.
 :param mac: MAC address of bluetooth device.</p>
 </dd></dl>
@@ -180,28 +185,16 @@ is not ready.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">device</span><span class="o">.</span><span class="n">info</span><span class="p">()</span>
 </pre></div>
 </div>
-<dl class="method">
-<dt id="bluew.Connection.close">
-<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/connections.html#Connection.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.Connection.close" title="Permalink to this definition">¶</a></dt>
-<dd><p>Close the conncection.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="bluew.Connection.get_chrcs">
-<code class="descname">get_chrcs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/connections.html#Connection.get_chrcs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.Connection.get_chrcs" title="Permalink to this definition">¶</a></dt>
+<dl class="attribute">
+<dt id="bluew.Connection.chrcs">
+<code class="descname">chrcs</code><a class="headerlink" href="#bluew.Connection.chrcs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get available BLE characteristics of a device.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="bluew.Connection.get_controllers">
-<code class="descname">get_controllers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/connections.html#Connection.get_controllers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.Connection.get_controllers" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get available bluetooth controllers.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="bluew.Connection.get_services">
-<code class="descname">get_services</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/connections.html#Connection.get_services"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.Connection.get_services" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get available BLE services of a device.</p>
+<dt id="bluew.Connection.close">
+<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/connections.html#Connection.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.Connection.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close the conncection.</p>
 </dd></dl>
 
 <dl class="method">
@@ -226,6 +219,12 @@ is not ready.</p>
 <dt id="bluew.Connection.remove">
 <code class="descname">remove</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/connections.html#Connection.remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.Connection.remove" title="Permalink to this definition">¶</a></dt>
 <dd><p>Disconnect and unpair device.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="bluew.Connection.services">
+<code class="descname">services</code><a class="headerlink" href="#bluew.Connection.services" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get available BLE services of a device.</p>
 </dd></dl>
 
 <dl class="method">
@@ -271,7 +270,6 @@ is not ready.</p>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="index.html" title="previous chapter">Bluew: Bluetooth made simple</a></li>
-      <li>Next: <a href="connection.html" title="next chapter">Advanced Connection API</a></li>
   </ul></li>
 </ul>
 </div>

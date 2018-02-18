@@ -55,17 +55,30 @@
 
 <span class="kn">from</span> <span class="nn">.connections</span> <span class="k">import</span> <span class="n">Connection</span>
 <span class="kn">from</span> <span class="nn">.plugables</span> <span class="k">import</span> <span class="n">UsedEngine</span>
-<span class="kn">from</span> <span class="nn">.devices</span> <span class="k">import</span> <span class="n">Device</span>
+<span class="kn">from</span> <span class="nn">.device</span> <span class="k">import</span> <span class="n">Device</span>
+<span class="kn">from</span> <span class="nn">.controller</span> <span class="k">import</span> <span class="n">Controller</span>
 
 
-<div class="viewcode-block" id="get_devices"><a class="viewcode-back" href="../../api.html#bluew.api.get_devices">[docs]</a><span class="k">def</span> <span class="nf">get_devices</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Device</span><span class="p">]:</span>
+<div class="viewcode-block" id="devices"><a class="viewcode-back" href="../../api.html#bluew.devices">[docs]</a><span class="k">def</span> <span class="nf">devices</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Device</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Get list of devices around.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">UsedEngine</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">as</span> <span class="n">engine</span><span class="p">:</span></div>
+        <span class="k">return</span> <span class="n">engine</span><span class="o">.</span><span class="n">devices</span>
+
+
+<div class="viewcode-block" id="controllers"><a class="viewcode-back" href="../../api.html#bluew.controllers">[docs]</a><span class="k">def</span> <span class="nf">controllers</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Controller</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Get list of available controllers.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">UsedEngine</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">as</span> <span class="n">engine</span><span class="p">:</span></div>
+        <span class="k">return</span> <span class="n">engine</span><span class="o">.</span><span class="n">controllers</span>
+
+
+<div class="viewcode-block" id="get_devices"><a class="viewcode-back" href="../../api.html#bluew.get_devices">[docs]</a><span class="k">def</span> <span class="nf">get_devices</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Device</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;Get list of devices around.&quot;&quot;&quot;</span>
 
     <span class="k">with</span> <span class="n">UsedEngine</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">as</span> <span class="n">engine</span><span class="p">:</span></div>
         <span class="k">return</span> <span class="n">engine</span><span class="o">.</span><span class="n">get_devices</span><span class="p">()</span>
 
 
-<div class="viewcode-block" id="connect"><a class="viewcode-back" href="../../api.html#bluew.api.connect">[docs]</a><span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="n">mac</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="connect"><a class="viewcode-back" href="../../api.html#bluew.connect">[docs]</a><span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="n">mac</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Connect to a bluetooth device.</span>
 <span class="sd">    :param mac: MAC address of bluetooth device.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -74,7 +87,7 @@
         <span class="k">return</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">mac</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="disconnect"><a class="viewcode-back" href="../../api.html#bluew.api.disconnect">[docs]</a><span class="k">def</span> <span class="nf">disconnect</span><span class="p">(</span><span class="n">mac</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="disconnect"><a class="viewcode-back" href="../../api.html#bluew.disconnect">[docs]</a><span class="k">def</span> <span class="nf">disconnect</span><span class="p">(</span><span class="n">mac</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Disconnect from a bluetooth device.</span>
 <span class="sd">    :param mac: MAC address of bluetooth device.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -83,7 +96,7 @@
         <span class="k">return</span> <span class="n">engine</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="n">mac</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="trust"><a class="viewcode-back" href="../../api.html#bluew.api.trust">[docs]</a><span class="k">def</span> <span class="nf">trust</span><span class="p">(</span><span class="n">mac</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="trust"><a class="viewcode-back" href="../../api.html#bluew.trust">[docs]</a><span class="k">def</span> <span class="nf">trust</span><span class="p">(</span><span class="n">mac</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Trust a bluetooth device.</span>
 <span class="sd">    :param mac: MAC address of bluetooth device.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -92,7 +105,7 @@
         <span class="k">return</span> <span class="n">engine</span><span class="o">.</span><span class="n">trust</span><span class="p">(</span><span class="n">mac</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="distrust"><a class="viewcode-back" href="../../api.html#bluew.api.distrust">[docs]</a><span class="k">def</span> <span class="nf">distrust</span><span class="p">(</span><span class="n">mac</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="distrust"><a class="viewcode-back" href="../../api.html#bluew.distrust">[docs]</a><span class="k">def</span> <span class="nf">distrust</span><span class="p">(</span><span class="n">mac</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Distrust a bluetooth device.</span>
 <span class="sd">    :param mac: MAC address of bluetooth device.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -101,7 +114,7 @@
         <span class="k">return</span> <span class="n">engine</span><span class="o">.</span><span class="n">distrust</span><span class="p">(</span><span class="n">mac</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="pair"><a class="viewcode-back" href="../../api.html#bluew.api.pair">[docs]</a><span class="k">def</span> <span class="nf">pair</span><span class="p">(</span><span class="n">mac</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="pair"><a class="viewcode-back" href="../../api.html#bluew.pair">[docs]</a><span class="k">def</span> <span class="nf">pair</span><span class="p">(</span><span class="n">mac</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Pair with a bluetooth device.</span>
 <span class="sd">    :param mac: MAC address of bluetooth device.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -110,7 +123,7 @@
         <span class="k">return</span> <span class="n">engine</span><span class="o">.</span><span class="n">pair</span><span class="p">(</span><span class="n">mac</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="remove"><a class="viewcode-back" href="../../api.html#bluew.api.remove">[docs]</a><span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="n">mac</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="remove"><a class="viewcode-back" href="../../api.html#bluew.remove">[docs]</a><span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="n">mac</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Remove a bluetooth device.</span>
 <span class="sd">    :param mac: MAC address of bluetooth device.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -119,7 +132,7 @@
         <span class="k">return</span> <span class="n">engine</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">mac</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="write_attribute"><a class="viewcode-back" href="../../api.html#bluew.api.write_attribute">[docs]</a><span class="k">def</span> <span class="nf">write_attribute</span><span class="p">(</span><span class="n">mac</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">attribute</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+<div class="viewcode-block" id="write_attribute"><a class="viewcode-back" href="../../api.html#bluew.write_attribute">[docs]</a><span class="k">def</span> <span class="nf">write_attribute</span><span class="p">(</span><span class="n">mac</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">attribute</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
                     <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Write a bluetooth attribute on bluetooth device.</span>
 <span class="sd">    :param mac: MAC address of bluetooth device.</span>
@@ -131,7 +144,7 @@
         <span class="k">return</span> <span class="n">connection</span><span class="o">.</span><span class="n">write_attribute</span><span class="p">(</span><span class="n">attribute</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="read_attribute"><a class="viewcode-back" href="../../api.html#bluew.api.read_attribute">[docs]</a><span class="k">def</span> <span class="nf">read_attribute</span><span class="p">(</span><span class="n">mac</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">attribute</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]:</span>
+<div class="viewcode-block" id="read_attribute"><a class="viewcode-back" href="../../api.html#bluew.read_attribute">[docs]</a><span class="k">def</span> <span class="nf">read_attribute</span><span class="p">(</span><span class="n">mac</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">attribute</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;Read a bluetooth attribute on bluetooth device.</span>
 <span class="sd">    :param mac: MAC address of bluetooth device.</span>
 <span class="sd">    :param attribute: Bluetooth attribute to read.</span>
@@ -141,7 +154,7 @@
         <span class="k">return</span> <span class="n">connection</span><span class="o">.</span><span class="n">read_attribute</span><span class="p">(</span><span class="n">attribute</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="info"><a class="viewcode-back" href="../../api.html#bluew.api.info">[docs]</a><span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="n">mac</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Device</span><span class="p">:</span>
+<div class="viewcode-block" id="info"><a class="viewcode-back" href="../../api.html#bluew.info">[docs]</a><span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="n">mac</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Device</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Get device info.</span>
 <span class="sd">    :param mac: MAC address of bluetooth device.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
