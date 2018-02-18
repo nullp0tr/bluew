@@ -13,8 +13,8 @@ that should be inherited by functioning engines.
 
 from typing import Callable, List
 
-from bluew.devices import Device
-from bluew.controllers import Controller
+from bluew.device import Device
+from bluew.controller import Controller
 from bluew.services import BLEService
 from bluew.characteristics import BLECharacteristic
 from bluew.errors import BluewError
