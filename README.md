@@ -111,11 +111,13 @@ for example:
 ```
 `bluew.Connection` supports all the functions already shown above and used 
 directly from bluew except for `get_devices()` and `get_controllers` and offers 
-even more functions like:
-- get_services
-- get_chrcs
+two more functions like:
 - notify
 - stop_notify
+
+and two properties/attributes:
+- services
+- chrcs
 
 ### Flags:
 You can pass to any function/class imported from bluew the following flags:
