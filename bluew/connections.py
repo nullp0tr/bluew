@@ -96,11 +96,6 @@ class Connection:
         return self.engine.info(self.mac)
 
     @close_on_error
-    def get_controllers(self):
-        """Get available bluetooth controllers."""
-        return self.engine.get_controllers()
-
-    @close_on_error
     def get_services(self):
         """Get available BLE services of a device."""
         return self.engine.get_services(self.mac)
