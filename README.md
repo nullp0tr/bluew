@@ -21,11 +21,11 @@ talks directly to bluez using the D-Bus API.
 
 ### How to install?'
 
-`pip3 install git+https://github.com/nullp0tr/bluew.git`
+`pip3 install bluew`
 
-With sudo:
+Globally with sudo:
 
-`sudo -H pip3 install git+https://github.com/nullp0tr/bluew.git`
+`sudo -H pip3 install bluew`
 
 
 Unfortunately since DBusted (bluew's current backend) is using python-dbus, 
