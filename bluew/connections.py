@@ -95,13 +95,13 @@ class Connection:
         """Get device info."""
         return self.engine.info(self.mac)
 
-    @property
+    @property  # type: ignore
     @close_on_error
     def services(self):
         """Get available BLE services of a device."""
         return self.engine.get_services(self.mac)
 
-    @property
+    @property  # type: ignore
     @close_on_error
     def chrcs(self):
         """Get available BLE characteristics of a device."""
