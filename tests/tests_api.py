@@ -154,7 +154,7 @@ class APITestsWithDev(TestCase):
         """Test get_devices with device available."""
 
         mac = config['dev']['testdev1']['mac']
-        devices = bluew.get_devices()
+        devices = bluew.devices()
         self.assertTrue(devices)
         has_device = (mac == dev.Address for dev in devices)
         has_device = list(filter(lambda x: x is True, has_device))
