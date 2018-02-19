@@ -154,7 +154,7 @@ class APITestsWithDev(TestCase):
         """Test get_devices with device available."""
 
         mac = config['dev']['testdev1']['mac']
-        devices = bluew.get_devices()
+        devices = bluew.devices()
         self.assertTrue(devices)
         has_device = (mac == dev.Address for dev in devices)
         has_device = list(filter(lambda x: x is True, has_device))
@@ -174,10 +174,10 @@ class ConnectionTestWithDev(TestCase):
         with bluew.Connection(mac, cntrl=cntrl) as connection:
             connection.trust()
             connection.pair(d_init=True)
-            chrcs = connection.get_chrcs()
+            chrcs = connection.chrcs
             has_atr = bool(filter(lambda chrc: chrc.UUID == attribute, chrcs))
             self.assertTrue(has_atr)
-            srvs = connection.get_services()
+            srvs = connection.services
             has_atr = bool(filter(lambda srv: srv.UUID == attribute, srvs))
             self.assertTrue(has_atr)
             connection.read_attribute(attribute)
@@ -186,22 +186,6 @@ class ConnectionTestWithDev(TestCase):
             attr = connection.read_attribute(attribute)
             data = [bytes([val]) for val in data]
             self.assertEqual(attr[:len(data)], data)
-    #
-    # def test_conn_chrcs(self):
-    #     mac = config['dev']['testdev1']['mac']
-    #     attribute = config['dev']['testdev1']['correct_attribute']
-    #     with bluew.Connection(mac) as connection:
-    #         chrcs = connection.get_chrcs()
-    #         has_atr = bool(filter(lambda chrc: chrc.UUID == attribute, chrcs))
-    #         self.assertTrue(has_atr)
-    #
-    # def test_conn_services(self):
-    #     mac = config['dev']['testdev1']['mac']
-    #     attribute = config['dev']['testdev1']['service_attribute']
-    #     with bluew.Connection(mac) as connection:
-    #         srvs = connection.get_services()
-    #         has_atr = bool(filter(lambda srv: srv.UUID == attribute, srvs))
-    #         self.assertTrue(has_atr)
 
 
 @attr('req_engine')

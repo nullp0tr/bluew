@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/nullp0tr/bluew.svg?branch=master)](https://travis-ci.org/nullp0tr/Bluew)
 [![codecov](https://codecov.io/gh/nullp0tr/bluew/branch/master/graph/badge.svg)](https://codecov.io/gh/nullp0tr/bluew)
-[![version](https://img.shields.io/badge/version-0.3.3-green.svg)](https://img.shields.io/badge/version-0.2.0-green.svg)
+[![version](https://img.shields.io/badge/version-0.3.4-green.svg)](https://img.shields.io/badge/version-0.2.0-green.svg)
 
 ![logo](bluew_logo.png)
 
@@ -21,11 +21,11 @@ talks directly to bluez using the D-Bus API.
 
 ### How to install?'
 
-`pip3 install git+https://github.com/nullp0tr/bluew.git`
+`pip3 install bluew`
 
-With sudo:
+Globally with sudo:
 
-`sudo -H pip3 install git+https://github.com/nullp0tr/bluew.git`
+`sudo -H pip3 install bluew`
 
 
 Unfortunately since DBusted (bluew's current backend) is using python-dbus, 
@@ -111,11 +111,13 @@ for example:
 ```
 `bluew.Connection` supports all the functions already shown above and used 
 directly from bluew except for `get_devices()` and `get_controllers` and offers 
-even more functions like:
-- get_services
-- get_chrcs
+two more functions like:
 - notify
 - stop_notify
+
+and two properties/attributes:
+- services
+- chrcs
 
 ### Flags:
 You can pass to any function/class imported from bluew the following flags:

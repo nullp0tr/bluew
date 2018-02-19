@@ -16,9 +16,9 @@ from dbus.connection import SignalMatch  # pylint: disable=W0611
 import dbus
 
 from bluew.characteristics import BLECharacteristic
-from bluew.controllers import Controller
+from bluew.controller import Controller
 from bluew.dbusted.utils import dbus_object_parser
-from bluew.devices import Device
+from bluew.device import Device
 from bluew.services import BLEService
 
 

@@ -22,7 +22,20 @@ from typing import List
 
 from .connections import Connection
 from .plugables import UsedEngine
-from .devices import Device
+from .device import Device
+from .controller import Controller
+
+
+def devices(*args, **kwargs) -> List[Device]:
+    """Get list of devices around."""
+    with UsedEngine(*args, **kwargs) as engine:
+        return engine.devices
+
+
+def controllers(*args, **kwargs) -> List[Controller]:
+    """Get list of available controllers."""
+    with UsedEngine(*args, **kwargs) as engine:
+        return engine.controllers
 
 
 def get_devices(*args, **kwargs) -> List[Device]:

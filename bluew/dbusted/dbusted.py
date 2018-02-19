@@ -76,7 +76,7 @@ class DBusted(EngineBluew):
 
     def __init__(self, *args, **kwargs):
         name = "DBusted"
-        version = "0.3.7"
+        version = "0.3.8"
         kwargs['name'] = name
         kwargs['version'] = version
         super().__init__(*args, **kwargs)
@@ -117,6 +117,18 @@ class DBusted(EngineBluew):
             if self.cntrl not in paths:
                 self.stop_engine()
                 raise ControllerSpecifiedNotFound()
+
+    @property
+    def devices(self):
+        """A property to get devices nearby."""
+        boiface = BluezObjectInterface(self._bus)
+        return boiface.get_devices()
+
+    @property
+    def controllers(self):
+        """A property to get controllers available."""
+        boiface = BluezObjectInterface(self._bus)
+        return boiface.get_controllers()
 
     @staticmethod
     def _strip_cntrl_path(cntrl):
