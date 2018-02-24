@@ -1,5 +1,5 @@
 test:
-	nosetests tests --tc-file=tests/.testconfig.yaml --tc-format=yaml --with-id -v
+	nosetests tests --tc-file=tests/.testconfig.yaml --tc-format=yaml --with-id -v --with-coverage --cover-package=bluew
 lint:
 	flake8 --ignore=F401 bluew
 	pylint --rcfile=.pylintrc --notes=FIXME bluew
