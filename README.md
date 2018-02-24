@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/nullp0tr/bluew.svg?branch=master)](https://travis-ci.org/nullp0tr/Bluew)
 [![codecov](https://codecov.io/gh/nullp0tr/bluew/branch/master/graph/badge.svg)](https://codecov.io/gh/nullp0tr/bluew)
-[![version](https://img.shields.io/badge/version-0.3.4-green.svg)](https://img.shields.io/badge/version-0.2.0-green.svg)
+[![version](https://img.shields.io/badge/version-0.4.0-green.svg)](https://img.shields.io/badge/version-0.4.0-green.svg)
 
 ![logo](bluew_logo.png)
 
@@ -136,12 +136,3 @@ of scanning. You can't pass this to Connection methods yet.
 - *possible*: 'hciN'; N being an integer
 - *usage*: Controller you'd like to use for the operations, if None is left there's
 currently no guarantee which controller would be picked.
-
-### TODO for 0.4.0 release
-
-- 90% Test coverage.
-- Better handling of bluez errors.
-- Fully automated hand-free pairing.
-- Better documentation.
-- Connect using advertising UUID instead of just mac.
-
