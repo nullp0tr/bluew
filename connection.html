@@ -1,0 +1,170 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Advanced Connection API &#8212; bluew 0.3.3 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="The Basic Bluew API" href="api.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="advanced-connection-api">
+<h1>Advanced Connection API<a class="headerlink" href="#advanced-connection-api" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="bluew.connections.Connection">
+<em class="property">class </em><code class="descclassname">bluew.connections.</code><code class="descname">Connection</code><span class="sig-paren">(</span><em>mac</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/connections.html#Connection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.connections.Connection" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Bluew Connection</p>
+<p>Provides a persistent connection with one device.</p>
+<p>Basic Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">bluew</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mac</span> <span class="o">=</span> <span class="s1">&#39;xx:xx:xx:xx:xx&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">device</span> <span class="o">=</span> <span class="n">bluew</span><span class="o">.</span><span class="n">Connection</span><span class="p">(</span><span class="n">mac</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">device</span><span class="o">.</span><span class="n">info</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="bluew.connections.Connection.close">
+<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/connections.html#Connection.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.connections.Connection.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close the conncection.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bluew.connections.Connection.get_chrcs">
+<code class="descname">get_chrcs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/connections.html#Connection.get_chrcs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.connections.Connection.get_chrcs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get available BLE characteristics of a device.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bluew.connections.Connection.get_controllers">
+<code class="descname">get_controllers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/connections.html#Connection.get_controllers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.connections.Connection.get_controllers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get available bluetooth controllers.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bluew.connections.Connection.get_services">
+<code class="descname">get_services</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/connections.html#Connection.get_services"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.connections.Connection.get_services" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get available BLE services of a device.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bluew.connections.Connection.info">
+<code class="descname">info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/connections.html#Connection.info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.connections.Connection.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get device info.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bluew.connections.Connection.notify">
+<code class="descname">notify</code><span class="sig-paren">(</span><em>attribute</em>, <em>handler</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/connections.html#Connection.notify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.connections.Connection.notify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turn on notifications on attribute, and call handler with data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bluew.connections.Connection.read_attribute">
+<code class="descname">read_attribute</code><span class="sig-paren">(</span><em>attribute</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/connections.html#Connection.read_attribute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.connections.Connection.read_attribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a bluetooth attribute.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bluew.connections.Connection.remove">
+<code class="descname">remove</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/connections.html#Connection.remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.connections.Connection.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disconnect and unpair device.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bluew.connections.Connection.stop_notify">
+<code class="descname">stop_notify</code><span class="sig-paren">(</span><em>attribute</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/connections.html#Connection.stop_notify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.connections.Connection.stop_notify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turn off notifications on attribute.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bluew.connections.Connection.trust">
+<code class="descname">trust</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/connections.html#Connection.trust"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.connections.Connection.trust" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trust a bluetooth device.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bluew.connections.Connection.write_attribute">
+<code class="descname">write_attribute</code><span class="sig-paren">(</span><em>attribute</em>, <em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bluew/connections.html#Connection.write_attribute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bluew.connections.Connection.write_attribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write to a bluetooth attribute.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="api.html" title="previous chapter">The Basic Bluew API</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/connection.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Ahmed Alsharif.
+      
+      |
+      <a href="_sources/connection.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/nullp0tr/bluew" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

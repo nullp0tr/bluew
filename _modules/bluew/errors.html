@@ -1,0 +1,193 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>bluew.errors &#8212; bluew 0.4.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for bluew.errors</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">bluew.errors</span>
+<span class="sd">~~~~~~~~~~~~</span>
+
+<span class="sd">This module contains the errors that should be raised by an engine.</span>
+
+
+<span class="sd">:copyright: (c) 2017 by Ahmed Alsharif.</span>
+<span class="sd">:license: MIT, see LICENSE for more details.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="BluewError"><a class="viewcode-back" href="../../api.html#bluew.errors.BluewError">[docs]</a><span class="k">class</span> <span class="nc">BluewError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;For those times when the Engine blows.&quot;&quot;&quot;</span>
+
+    <span class="n">DEVICE_NOT_AVAILABLE</span> <span class="o">=</span> <span class="s1">&#39;Bluew can not find bluetooth device.&#39;</span>
+    <span class="n">NO_CONTROLLERS</span> <span class="o">=</span> <span class="s1">&#39;Bluew could not find any bluetooth controllers.&#39;</span>
+    <span class="n">CONTROLLER_NOT_AVAILABLE</span> <span class="o">=</span> <span class="s1">&#39;Bluew could not find the controller specified.&#39;</span>
+    <span class="n">CONTROLLER_NOT_READY</span> <span class="o">=</span> <span class="s1">&#39;The controller might be blocked/disabled.&#39;</span>
+    <span class="n">COULD_NOT_PAIR</span> <span class="o">=</span> <span class="s1">&#39;Bluew could not pair with device.&#39;</span>
+    <span class="n">READ_WRITE_FAILED</span> <span class="o">=</span> <span class="s1">&#39;Bluew could not read/write this attribute.&#39;</span>
+    <span class="n">INVALID_ARGS</span> <span class="o">=</span> <span class="s1">&#39;Invalid args.&#39;</span>
+    <span class="n">UNEXPECTED_ERROR</span> <span class="o">=</span> <span class="s1">&#39;An unexpected error happened.&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reason</span><span class="p">,</span> <span class="n">long_reason</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">engine_name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="n">version</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reason</span> <span class="o">=</span> <span class="n">reason</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">long_reason</span> <span class="o">=</span> <span class="n">long_reason</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">msg_tail</span> <span class="o">=</span> <span class="s1">&#39; using: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine_name</span> <span class="o">+</span> <span class="s1">&#39; ver: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">long_reason</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">long_reason</span> <span class="o">+</span> <span class="n">msg_tail</span>
+            <span class="k">return</span> <span class="n">msg</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reason</span> <span class="o">+</span> <span class="n">msg_tail</span></div>
+        <span class="k">return</span> <span class="n">msg</span>
+
+
+<div class="viewcode-block" id="DeviceNotAvailable"><a class="viewcode-back" href="../../api.html#bluew.errors.DeviceNotAvailable">[docs]</a><span class="k">class</span> <span class="nc">DeviceNotAvailable</span><span class="p">(</span><span class="n">BluewError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This error is raised by when the bluetooth devices specified</span>
+<span class="sd">    is not found.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span></div>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">BluewError</span><span class="o">.</span><span class="n">DEVICE_NOT_AVAILABLE</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="PairError"><a class="viewcode-back" href="../../api.html#bluew.errors.PairError">[docs]</a><span class="k">class</span> <span class="nc">PairError</span><span class="p">(</span><span class="n">BluewError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This error is raised when a pairing error that can&#39;t be handled is raised.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">AUTHENTICATION_ERROR</span> <span class="o">=</span> <span class="s1">&#39;Failed to authenticate&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span></div>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">BluewError</span><span class="o">.</span><span class="n">COULD_NOT_PAIR</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ReadWriteNotifyError"><a class="viewcode-back" href="../../api.html#bluew.errors.ReadWriteNotifyError">[docs]</a><span class="k">class</span> <span class="nc">ReadWriteNotifyError</span><span class="p">(</span><span class="n">BluewError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This error is raised when a read/write fail that can&#39;t be handled happens.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NOT_PERMITTED</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;Action not allowed on this attribute.&#39;&#39;&#39;</span>
+    <span class="n">NOT_SUPPORTED</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;This attribute doesn&#39;t support this action&#39;&#39;&#39;</span>
+    <span class="n">NOT_AUTHORIZED</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;Client not trusted by device.&#39;&#39;&#39;</span>
+    <span class="n">IN_PROGRESS</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;There&#39;s already a read/write op on this attribute.&#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span></div>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">BluewError</span><span class="o">.</span><span class="n">READ_WRITE_FAILED</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="InvalidArgumentsError"><a class="viewcode-back" href="../../api.html#bluew.errors.InvalidArgumentsError">[docs]</a><span class="k">class</span> <span class="nc">InvalidArgumentsError</span><span class="p">(</span><span class="n">BluewError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This error is rasied when arguemnts passed are.. well.. invalid.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">INVALID_LEN</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;Length of passed argument isn&#39;t valid.&#39;&#39;&#39;</span>
+    <span class="n">INVALID_ARGS</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;The arguments passed are incorrect.&#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span></div>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">BluewError</span><span class="o">.</span><span class="n">INVALID_ARGS</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="NoControllerAvailable"><a class="viewcode-back" href="../../api.html#bluew.errors.NoControllerAvailable">[docs]</a><span class="k">class</span> <span class="nc">NoControllerAvailable</span><span class="p">(</span><span class="n">BluewError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This error is raised when no bluetooth controllers</span>
+<span class="sd">    are found.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span></div>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">BluewError</span><span class="o">.</span><span class="n">NO_CONTROLLERS</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ControllerSpecifiedNotFound"><a class="viewcode-back" href="../../api.html#bluew.errors.ControllerSpecifiedNotFound">[docs]</a><span class="k">class</span> <span class="nc">ControllerSpecifiedNotFound</span><span class="p">(</span><span class="n">BluewError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This error is raised when the controller specified</span>
+<span class="sd">    is not found by bluew.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span></div>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">BluewError</span><span class="o">.</span><span class="n">CONTROLLER_NOT_AVAILABLE</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ControllerNotReady"><a class="viewcode-back" href="../../api.html#bluew.errors.ControllerNotReady">[docs]</a><span class="k">class</span> <span class="nc">ControllerNotReady</span><span class="p">(</span><span class="n">BluewError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This error is raised when the controller specified or picked by default</span>
+<span class="sd">    is not ready.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span></div>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">BluewError</span><span class="o">.</span><span class="n">CONTROLLER_NOT_READY</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Ahmed Alsharif.
+      
+    </div>
+
+    
+    <a href="https://github.com/nullp0tr/bluew" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,8 @@
+.. index:
+
+Advanced Connection API
+=======================
+
+
+.. autoclass:: bluew.connections.Connection
+    :members:
