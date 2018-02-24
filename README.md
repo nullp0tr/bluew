@@ -136,12 +136,3 @@ of scanning. You can't pass this to Connection methods yet.
 - *possible*: 'hciN'; N being an integer
 - *usage*: Controller you'd like to use for the operations, if None is left there's
 currently no guarantee which controller would be picked.
-
-### TODO for 0.4.0 release
-
-- 90% Test coverage.
-- Better handling of bluez errors.
-- Fully automated hand-free pairing.
-- Better documentation.
-- Connect using advertising UUID instead of just mac.
-
