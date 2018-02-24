@@ -48,3 +48,8 @@ Bluew Connection
 .. autoclass:: Connection
     :inherited-members:
 
+
+Utility Functions
+-----------------
+
+.. autofunction:: bluew.utils.devs_with_uuid
