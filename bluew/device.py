@@ -26,6 +26,7 @@ class Device(PPObj):  # pylint: disable=too-many-instance-attributes
                  'Modalias'}
         super().__init__(attrs, **kwargs)
         self.adapter = kwargs.get('Adapter')
+        self.address = kwargs.get('Address')
         self.alias = kwargs.get('Alias')
         self.appearance = kwargs.get('Appearance')
         self.blocked = kwargs.get('Blocked')
