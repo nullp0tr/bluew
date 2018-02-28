@@ -20,3 +20,8 @@ class BLEService(PPObj):
     def __init__(self, **kwargs):
         attrs = {'Primary', 'Device', 'UUID', 'Path', 'Includes'}
         super().__init__(attrs, **kwargs)
+        self.primary = kwargs.get('Primary')
+        self.device = kwargs.get('Device')
+        self.UUID = kwargs.get('UUID')  # pylint: disable=invalid-name
+        self.path = kwargs.get('Path')
+        self.includes = kwargs.get('Includes')
