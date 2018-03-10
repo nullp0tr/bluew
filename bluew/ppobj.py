@@ -11,6 +11,9 @@ all the object's attributes.
 """
 
 
+import logging
+
+
 class PPObj(object):
     """Bluetooth device object."""
 
@@ -18,8 +21,10 @@ class PPObj(object):
         for key, value in kwargs.items():
             if key not in attrs:
                 name = self.__class__.__name__
-                raise TypeError(
-                    '{a} should not have attribute {b}'.format(a=name, b=key))
+                logger = logging.getLogger(__name__)
+                logger.debug(
+                    '{a} has unknown attribute {b}'.format(a=name, b=key)
+                )
             setattr(self, key, value)
 
     def __str__(self):
