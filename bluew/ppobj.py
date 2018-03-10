@@ -22,9 +22,8 @@ class PPObj(object):
             if key not in attrs:
                 name = self.__class__.__name__
                 logger = logging.getLogger(__name__)
-                logger.debug(
-                    '{a} has unknown attribute {b}'.format(a=name, b=key)
-                )
+                log_msg = '{a} has unknown attribute {b}'.format(a=name, b=key)
+                logger.debug(log_msg)
             setattr(self, key, value)
 
     def __str__(self):
