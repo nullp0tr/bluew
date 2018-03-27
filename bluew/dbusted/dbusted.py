@@ -121,6 +121,7 @@ class DBusted(EngineBluew):
     @property
     def devices(self):
         """A property to get devices nearby."""
+        self._start_scan()
         boiface = BluezObjectInterface(self._bus)
         return boiface.get_devices()
 
