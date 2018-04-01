@@ -28,6 +28,8 @@ class PPObj(object):
 
     def __str__(self):
         result = ''
-        for key in self.__dict__:
-            result += key + ': ' + str(getattr(self, key)) + '\n'
+        keys = self.__dict__
+        for key in keys:
+            if key[0].isupper():
+                result += key + ': ' + str(getattr(self, key)) + '\n'
         return result
