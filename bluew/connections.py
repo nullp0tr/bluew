@@ -16,7 +16,7 @@ import bluew.plugables
 from bluew.daemon import Daemon, daemonize
 
 
-UsedEngine = bluew.plugables.UsedEngine
+UsedEngine = bluew.plugables.UsedEngine  # type: ignore
 
 
 def close_on_error(func):
