@@ -12,7 +12,7 @@ install:
 before_script:
   - pip3 install flake8
   - pip3 install pylint
-  - pip3 install mypy
+  - pip3 install mypy==0.560
   - pip3 install nose-testconfig
   - flake8 bluew --ignore=F401
   - mypy --no-warn-no-return --ignore-missing-imports .
