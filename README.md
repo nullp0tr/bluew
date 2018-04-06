@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/nullp0tr/bluew.svg?branch=master)](https://travis-ci.org/nullp0tr/Bluew)
 [![codecov](https://codecov.io/gh/nullp0tr/bluew/branch/master/graph/badge.svg)](https://codecov.io/gh/nullp0tr/bluew)
-[![version](https://img.shields.io/badge/version-0.4.5-green.svg)](https://img.shields.io/badge/version-0.4.5-green.svg)
+[![version](https://img.shields.io/badge/version-0.4.6-green.svg)](https://img.shields.io/badge/version-0.4.6-green.svg)
 
 ![logo](bluew_logo.png)
 
