@@ -12,6 +12,7 @@ by any EngineBluew when queried for devices.
 
 
 import bluew
+import logging
 from bluew.ppobj import PPObj
 
 
@@ -58,5 +59,6 @@ class Device(PPObj):  # pylint: disable=too-many-instance-attributes
                 mac = super().__getattribute__('address')
                 self = bluew.info(mac)  # noqa: F841
             except AttributeError as error:
+                logger = logging.getLogger(__name__)
                 logger.debug("Invalid device")
         return super().__getattribute__(item)
