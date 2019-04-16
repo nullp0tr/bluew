@@ -54,6 +54,9 @@ class Device(PPObj):  # pylint: disable=too-many-instance-attributes
         # or thou shall dive in an infinite recursion as deep as thy stack.
         # SERIOUSLY: `self.attr` is just gonna call this method again.
         if item not in Device.attrs:
-            mac = super().__getattribute__('address')
-            self = bluew.info(mac)  # noqa: F841
+            try:
+                mac = super().__getattribute__('address')
+                self = bluew.info(mac)  # noqa: F841
+            except AttributeError as error:
+                logger.debug("Invalid device")
         return super().__getattribute__(item)
